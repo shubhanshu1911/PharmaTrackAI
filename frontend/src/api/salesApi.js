@@ -10,3 +10,5 @@ export const addSale = async (saleData) => {
 export const getAllSales = async () => {
     return axios.get(API_URL);
 };
+
+
