@@ -80,7 +80,7 @@ const getSuppliersByProductId = async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT s.supplier_id, s.supplier_name, ps.cost_price, ps.reliability_score 
+            `SELECT s.supplier_id, s.supplier_name, ps.cost_price
              FROM productsuppliers ps
              JOIN suppliers s ON ps.supplier_id = s.supplier_id
              WHERE ps.product_id = $1`,
