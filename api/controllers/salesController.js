@@ -4,31 +4,37 @@ const addSale = async (req, res) => {
     const { product_id, quantity_sold, customer_name = 'Unknown', sale_date } = req.body;
 
     try {
-        const productInventory = await pool.query(
-            'SELECT quantity, price FROM inventory WHERE product_id = $1', 
+        // Get the product's sale price from the Products table
+        const productInfo = await pool.query(
+            'SELECT total_pills, sale_price FROM products WHERE product_id = $1',
             [product_id]
         );
 
-        if (productInventory.rows.length === 0) {
-            return res.status(404).json({ error: 'Product not found in inventory' });
+        // Check if the product exists
+        if (productInfo.rows.length === 0) {
+            return res.status(404).json({ error: 'Product not found in products table' });
         }
 
-        const currentQuantity = productInventory.rows[0].quantity;
-        const pricePerUnit = productInventory.rows[0].price;
+        const currentTotalPills = productInfo.rows[0].total_pills;
+        const pricePerUnit = productInfo.rows[0].sale_price;
 
-        if (currentQuantity < quantity_sold) {
+        // Check if there is enough stock
+        if (currentTotalPills < quantity_sold) {
             return res.status(400).json({ error: 'Insufficient stock to complete sale' });
         }
 
+        // Calculate the total amount for the sale
         const totalAmount = pricePerUnit * quantity_sold;
 
+        // Insert the sale into the Sales table
         await pool.query(
             'INSERT INTO sales (product_id, quantity_sold, sale_date, total_amount, customer_name) VALUES ($1, $2, $3, $4, $5)',
             [product_id, quantity_sold, sale_date, totalAmount, customer_name]
         );
 
+        // Update the total pills in the Products table (decrement the stock)
         await pool.query(
-            'UPDATE inventory SET quantity = quantity - $1 WHERE product_id = $2',
+            'UPDATE products SET total_pills = total_pills - $1 WHERE product_id = $2',
             [quantity_sold, product_id]
         );
 
@@ -39,6 +45,7 @@ const addSale = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 
 // Get all sales
