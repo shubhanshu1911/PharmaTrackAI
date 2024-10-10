@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getLowStockAlerts } from '../../api/inventoryApi';
+import { getAllInventory } from '../../api/inventoryApi';
 
 const StockAlerts = () => {
     const [alerts, setAlerts] = useState([]);
 
     useEffect(() => {
         const fetchAlerts = async () => {
-            const response = await getLowStockAlerts();
-            setAlerts(response.data);
+            const response = await getAllInventory();
+            console.log(response.data);
+            // Filter alerts based on quantity and reorder level
+            const lowStockAlerts = response.data.filter(alert => alert.quantity < alert.reorder_level);
+            setAlerts(lowStockAlerts);
         };
         fetchAlerts();
     }, []);
@@ -19,7 +22,8 @@ const StockAlerts = () => {
                 {alerts.map(alert => (
                     <li key={alert.product_id} className="bg-red-100 p-4 rounded shadow-md">
                         <div>Product ID: {alert.product_id}</div>
-                        <div>Stock: {alert.stock}</div>
+                        <div>Quantity: {alert.quantity}</div>
+                        <div>Reorder Level: {alert.reorder_level}</div>
                     </li>
                 ))}
             </ul>

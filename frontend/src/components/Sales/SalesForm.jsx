@@ -128,14 +128,6 @@ const SalesForm = () => {
                 className="border p-2 w-full mb-4"
             />
 
-            <input
-                type="number"
-                placeholder="Total Amount"
-                value={saleData.total_amount}
-                onChange={(e) => setSaleData({ ...saleData, total_amount: e.target.value })}
-                className="border p-2 w-full mb-4"
-            />
-
             <button
                 type="submit"
                 className={`bg-blue-600 text-white py-2 px-4 rounded ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}

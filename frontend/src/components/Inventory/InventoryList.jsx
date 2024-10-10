@@ -8,6 +8,7 @@ const InventoryList = () => {
         const fetchInventory = async () => {
             const response = await getAllInventory();
             setInventory(response.data);
+            console.log(response.data);
         };
         fetchInventory();
     }, []);
@@ -19,7 +20,7 @@ const InventoryList = () => {
                 {inventory.map(item => (
                     <li key={item.id} className="bg-white p-4 rounded shadow-md">
                         <div>Product ID: {item.product_id}</div>
-                        <div>Stock: {item.stock}</div>
+                        <div>Stock: {item.quantity}</div>
                     </li>
                 ))}
             </ul>
