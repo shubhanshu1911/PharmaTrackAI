@@ -16,12 +16,14 @@ const salesRoutes = require('./routes/salesRoute');
 const orderRoutes = require('./routes/orderRoute');
 const inventoryRoutes = require('./routes/inventoryRoute'); 
 const analyticsRoutes = require('./routes/analyticsRoute'); 
+const productRoutes = require('./routes/productRoute');
 
 // Use routes with a versioned base path
 app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/inventory', inventoryRoutes); 
 app.use('/api/v1/analytics', analyticsRoutes); 
+app.use('/api/v1/products', productRoutes);
 
 // Database connection
 pool.connect((err) => {
