@@ -10,10 +10,10 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 
 // Importing routes
-const salesRoutes = require('./routes/salesRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const inventoryRoutes = require('./routes/inventoryRoutes'); // Add this
-const analyticsRoutes = require('./routes/analyticsRoutes'); // Add this
+const salesRoutes = require('./routes/salesRoute');
+const orderRoutes = require('./routes/orderRoute');
+const inventoryRoutes = require('./routes/inventoryRoute'); // Add this
+const analyticsRoutes = require('./routes/analyticsRoute'); // Add this
 
 // Use routes with a versioned base path
 app.use('/api/v1/sales', salesRoutes);
