@@ -103,8 +103,20 @@ const getSuppliersByProductId = async (req, res) => {
     }
 };
 
+// Controller to get all orders
+const getAllOrders = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM orders');
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 module.exports = {
     placeOrder,
     updateOrderStatus,
-    getSuppliersByProductId
+    getSuppliersByProductId,
+    getAllOrders
 };
