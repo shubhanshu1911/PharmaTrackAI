@@ -22,8 +22,8 @@ const OrdersList = () => {
     // Function to update the order status
     const handleUpdateOrderStatus = async (orderId, updatedData) => {
         try {
-            await updateOrderStatus(orderId, updatedData);
-            const response = await getAllOrders(); // Fetch updated orders after status update
+            await updateOrderStatus(orderId, updatedData);  // Pass the updatedData including actual_delivery_date
+            const response = await getAllOrders();  // Fetch updated orders after status update
             setOrders(response.data);  // Align with backend response
         } catch (error) {
             setError('Error updating order status. Please try again later.');

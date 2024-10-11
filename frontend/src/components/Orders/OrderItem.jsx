@@ -8,10 +8,16 @@ const OrderItem = ({ order, onUpdateStatus }) => {
     const handleSubmit = () => {
         const updatedData = {
             status,
-            actual_delivery_date: status === 'delivered' ? actualDeliveryDate : null,
+            actual_delivery_date: status === 'delivered' ? actualDeliveryDate : null, // Send date only if status is delivered
         };
-        onUpdateStatus(order.order_id, updatedData);  // Update order using `order_id`
-        setIsEditing(false); // Exit editing mode after updating
+
+        onUpdateStatus(order.order_id, updatedData)
+            .then(() => {
+                setIsEditing(false); // Exit editing mode after successful update
+            })
+            .catch((err) => {
+                console.error('Failed to update order status:', err);
+            });
     };
 
     return (
@@ -36,17 +42,16 @@ const OrderItem = ({ order, onUpdateStatus }) => {
                     </div>
 
                     {status === 'delivered' && (
-                        <>
-                            <div className="mb-2">
-                                <label className="block">Actual Delivery Date</label>
-                                <input
-                                    type="date"
-                                    value={actualDeliveryDate}
-                                    onChange={(e) => setActualDeliveryDate(e.target.value)}
-                                    className="border p-2 w-full"
-                                />
-                            </div>
-                        </>
+                        <div className="mb-2">
+                            <label className="block">Actual Delivery Date</label>
+                            <input
+                                type="date"
+                                value={actualDeliveryDate}
+                                onChange={(e) => setActualDeliveryDate(e.target.value)}
+                                className="border p-2 w-full"
+                                required
+                            />
+                        </div>
                     )}
 
                     <button

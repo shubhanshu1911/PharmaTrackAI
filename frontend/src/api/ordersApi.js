@@ -7,8 +7,18 @@ export const placeOrder = async (orderData) => {
     return axios.post(`${API_URL}/orders`, orderData);
 };
 
-export const updateOrderStatus = async (orderId, status) => {
-    return axios.put(`${API_URL}/orders/${orderId}/status`, { status });
+export const updateOrderStatus = async (orderId, updatedData) => {
+    try {
+        const response = await axios.put(`http://localhost:5000/api/v1/orders/orders/${orderId}/status`, updatedData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating order status:', error.response ? error.response.data : error.message);
+        throw error;
+    }
 };
 
 
