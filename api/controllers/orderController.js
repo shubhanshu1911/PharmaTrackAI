@@ -23,12 +23,12 @@ const placeOrder = async (req, res) => {
     }
 };
 
-
 // Update order status (delivered or cancelled)
 const updateOrderStatus = async (req, res) => {
     const { order_id } = req.params;
     const { status, actual_delivery_date } = req.body;
 
+    // Check if the provided status is valid
     if (status !== 'delivered' && status !== 'cancelled') {
         return res.status(400).json({ error: 'Invalid status' });
     }
@@ -37,14 +37,16 @@ const updateOrderStatus = async (req, res) => {
         // Fetch the order details by order_id
         const orderResult = await pool.query('SELECT * FROM orders WHERE order_id = $1', [order_id]);
 
+        // If the order does not exist
         if (orderResult.rows.length === 0) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
         const order = orderResult.rows[0];
 
-        // If the status is "delivered", calculate actual lead time and update inventory
+        // Handle "delivered" status
         if (status === 'delivered') {
+            // Ensure actual_delivery_date is provided
             if (!actual_delivery_date) {
                 return res.status(400).json({ error: 'actual_delivery_date is required for delivered orders' });
             }
@@ -52,13 +54,13 @@ const updateOrderStatus = async (req, res) => {
             // Calculate the actual lead time in days
             const actual_lead_time = Math.ceil((new Date(actual_delivery_date) - new Date(order.order_date)) / (1000 * 3600 * 24));
 
-            // Update the inventory (subtract the ordered quantity from stock)
+            // Increase the inventory quantity by the ordered amount
             await pool.query(
-                'UPDATE inventory SET quantity = quantity - $1 WHERE product_id = $2',
+                'UPDATE inventory SET quantity = quantity + $1 WHERE product_id = $2',
                 [order.quantity, order.product_id]
             );
 
-            // Update the order with actual delivery details and status
+            // Update the order with the new status and delivery details
             await pool.query(
                 'UPDATE orders SET status = $1, actual_delivery_date = $2, actual_lead_time = $3 WHERE order_id = $4',
                 [status, actual_delivery_date, actual_lead_time, order_id]
@@ -67,7 +69,7 @@ const updateOrderStatus = async (req, res) => {
             return res.status(200).json({ message: 'Order delivered, inventory updated', actual_lead_time });
         }
 
-        // If the status is "cancelled", just update the status in the order
+        // Handle "cancelled" status
         await pool.query('UPDATE orders SET status = $1 WHERE order_id = $2', [status, order_id]);
 
         res.status(200).json({ message: `Order ${status}` });
