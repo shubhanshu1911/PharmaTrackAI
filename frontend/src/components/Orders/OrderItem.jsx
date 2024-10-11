@@ -1,9 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getProductByID } from '../../api/ordersApi'; // Assuming the function is in ordersApi.js
 
 const OrderItem = ({ order, onUpdateStatus }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [status, setStatus] = useState(order.status);
     const [actualDeliveryDate, setActualDeliveryDate] = useState(order.actual_delivery_date || '');
+    const [productName, setProductName] = useState(''); // State to hold the product name
+
+    // Fetch the product name when the component mounts
+    useEffect(() => {
+        const fetchProductName = async () => {
+            try {
+                const response = await getProductByID(order.product_id);
+                setProductName(response.data.product_name); // Assuming the product_name is in response.data
+            } catch (error) {
+                console.error('Error fetching product name:', error);
+                setProductName('Unknown'); // Fallback if fetch fails
+            }
+        };
+
+        fetchProductName(); // Trigger the product name fetch
+    }, [order.product_id]);
 
     const handleSubmit = () => {
         const updatedData = {
@@ -20,14 +37,21 @@ const OrderItem = ({ order, onUpdateStatus }) => {
             });
     };
 
+    // Function to format dates
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
     return (
         <li className="bg-white p-4 rounded shadow-md">
-            <div>Product ID: {order.product_id}</div>
-            <div>Order Date: {order.order_date}</div>
+            <div>Product Name: {productName}</div> {/* Show the fetched product name */}
+            <div>Order Date: {formatDate(order.order_date)}</div> {/* Format the order date */}
             <div>Total Cost: {order.total_cost}</div>
             <div>Quantity: {order.quantity}</div>
-            <div>Actual Delivery Date: {order.actual_delivery_date || 'Not delivered yet'}</div>
+            <div>Actual Delivery Date: {order.actual_delivery_date ? formatDate(order.actual_delivery_date) : 'Not delivered yet'}</div> {/* Format the delivery date */}
             <div>Claimed Lead Time: {order.claimed_lead_time}</div>
+            <div>Actual Lead Time: {order.actual_lead_time}</div>
             <div>Status: {order.status}</div>
 
             {isEditing ? (
