@@ -42,7 +42,30 @@ const searchProducts = async (req, res) => {
     }
 };
 
+
+// Controller to get product details by product_id
+const getProductByID = async (req, res) => {
+    const { product_id } = req.params;  // Extract product_id from route parameters
+
+    try {
+        // Query to fetch product details from the products table
+        const productQuery = await pool.query('SELECT * FROM products WHERE product_id = $1', [product_id]);
+
+        // Check if product exists
+        if (productQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // Return the product details
+        res.status(200).json(productQuery.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 module.exports = {
     getProductIDByName,
-    searchProducts
+    searchProducts,
+    getProductByID
 };
