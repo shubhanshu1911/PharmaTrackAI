@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getAllOrders, updateOrderStatus } from '../../api/ordersApi';
 import OrderItem from './OrderItem';
-import { getProductByID } from '../../api/productApi';  // Import the function to get product details
-
+import { getProductByID } from '../../api/productApi'; // Import the function to get product details
 
 const OrdersList = () => {
-    const [orders, setOrders] = useState([]);
     const [ordersWithProductNames, setOrdersWithProductNames] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,7 +14,6 @@ const OrdersList = () => {
             try {
                 const response = await getAllOrders();
                 const ordersData = response.data;
-                console.log(ordersData);
 
                 // For each order, fetch the corresponding product name by product_id
                 const ordersWithNames = await Promise.all(
@@ -47,9 +44,9 @@ const OrdersList = () => {
     // Function to update the order status
     const handleUpdateOrderStatus = async (orderId, updatedData) => {
         try {
-            await updateOrderStatus(orderId, updatedData);  // Pass the updatedData including actual_delivery_date
-            const response = await getAllOrders();  // Fetch updated orders after status update
-            setOrders(response.data);  // Align with backend response
+            await updateOrderStatus(orderId, updatedData); // Pass the updatedData including actual_delivery_date
+            const response = await getAllOrders(); // Fetch updated orders after status update
+            setOrdersWithProductNames(response.data); // Align with backend response
         } catch (error) {
             setError('Error updating order status. Please try again later.');
         }
@@ -58,15 +55,19 @@ const OrdersList = () => {
     if (loading) return <div>Loading orders...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
 
+    // Get the index of the latest entry in the orders list
+    const latestIndex = ordersWithProductNames.length - 1;
+
     return (
         <div>
             <h2 className="text-xl font-semibold mb-4">Orders List</h2>
             <ul className="space-y-4">
-                {ordersWithProductNames.slice().reverse().map((order) => (
+                {ordersWithProductNames.slice().reverse().map((order, index) => (
                     <OrderItem
-                        key={order.order_id}  // Use `order_id` as the key
+                        key={order.order_id} // Use `order_id` as the key
                         order={order}
                         onUpdateStatus={handleUpdateOrderStatus}
+                        isLatest={latestIndex === ordersWithProductNames.length - 1 - index} // Pass if this order is the latest
                     />
                 ))}
             </ul>

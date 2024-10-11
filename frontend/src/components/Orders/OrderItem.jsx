@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getProductByID } from '../../api/ordersApi'; // Assuming the function is in ordersApi.js
+import { getProductByID } from '../../api/productApi'; // Assuming the function is in ordersApi.js
 
-const OrderItem = ({ order, onUpdateStatus }) => {
+const OrderItem = ({ order, onUpdateStatus, isLatest }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [status, setStatus] = useState(order.status);
     const [actualDeliveryDate, setActualDeliveryDate] = useState(order.actual_delivery_date || '');
@@ -22,6 +22,12 @@ const OrderItem = ({ order, onUpdateStatus }) => {
         fetchProductName(); // Trigger the product name fetch
     }, [order.product_id]);
 
+    // Function to format the date
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' }; // Define formatting options
+        return new Date(dateString).toLocaleDateString(undefined, options); // Format date
+    };
+
     const handleSubmit = () => {
         const updatedData = {
             status,
@@ -37,19 +43,13 @@ const OrderItem = ({ order, onUpdateStatus }) => {
             });
     };
 
-    // Function to format dates
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    };
-
     return (
-        <li className="bg-white p-4 rounded shadow-md">
+        <li className={`bg-white p-4 rounded shadow-md ${isLatest ? 'border-2 border-blue-500' : ''}`}>
             <div>Product Name: {productName}</div> {/* Show the fetched product name */}
             <div>Order Date: {formatDate(order.order_date)}</div> {/* Format the order date */}
             <div>Total Cost: {order.total_cost}</div>
             <div>Quantity: {order.quantity}</div>
-            <div>Actual Delivery Date: {order.actual_delivery_date ? formatDate(order.actual_delivery_date) : 'Not delivered yet'}</div> {/* Format the delivery date */}
+            <div>Actual Delivery Date: {formatDate(order.actual_delivery_date) || 'Not delivered yet'}</div>
             <div>Claimed Lead Time: {order.claimed_lead_time}</div>
             <div>Actual Lead Time: {order.actual_lead_time}</div>
             <div>Status: {order.status}</div>
