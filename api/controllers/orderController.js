@@ -5,9 +5,18 @@ const placeOrder = async (req, res) => {
     const { product_id, quantity, supplier_id, order_date, claimed_lead_time } = req.body;
 
     try {
-        // Fetch product sale price to calculate total cost
-        const productQuery = await pool.query('SELECT sale_price FROM products WHERE product_id = $1', [product_id]);
-        const sale_price = productQuery.rows[0]?.sale_price || 0;
+        // Fetch product cost price based on both product_id and supplier_id
+        const productQuery = await pool.query(
+            'SELECT cost_price FROM productsuppliers WHERE product_id = $1 AND supplier_id = $2', 
+            [product_id, supplier_id]
+        );
+        
+        // Check if a result is returned
+        if (productQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Product with the given supplier not found' });
+        }
+
+        const sale_price = productQuery.rows[0]?.cost_price || 0;
         const total_cost = sale_price * quantity;
 
         // Insert new order into orders table with status "pending"
@@ -22,6 +31,7 @@ const placeOrder = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 // Update order status (delivered or cancelled)
 const updateOrderStatus = async (req, res) => {
