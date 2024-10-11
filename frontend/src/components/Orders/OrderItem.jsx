@@ -4,15 +4,13 @@ const OrderItem = ({ order, onUpdateStatus }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [status, setStatus] = useState(order.status);
     const [actualDeliveryDate, setActualDeliveryDate] = useState(order.actual_delivery_date || '');
-    const [actualLeadTime, setActualLeadTime] = useState(order.actual_lead_time || '');
 
     const handleSubmit = () => {
         const updatedData = {
             status,
             actual_delivery_date: status === 'delivered' ? actualDeliveryDate : null,
-            actual_lead_time: status === 'delivered' ? actualLeadTime : null,
         };
-        onUpdateStatus(order.id, updatedData);
+        onUpdateStatus(order.order_id, updatedData);  // Update order using `order_id`
         setIsEditing(false); // Exit editing mode after updating
     };
 
@@ -23,7 +21,6 @@ const OrderItem = ({ order, onUpdateStatus }) => {
             <div>Total Cost: {order.total_cost}</div>
             <div>Quantity: {order.quantity}</div>
             <div>Actual Delivery Date: {order.actual_delivery_date || 'Not delivered yet'}</div>
-            <div>Actual Lead Time: {order.actual_lead_time || 'Not delivered yet'}</div>
             <div>Claimed Lead Time: {order.claimed_lead_time}</div>
             <div>Status: {order.status}</div>
 
@@ -46,15 +43,6 @@ const OrderItem = ({ order, onUpdateStatus }) => {
                                     type="date"
                                     value={actualDeliveryDate}
                                     onChange={(e) => setActualDeliveryDate(e.target.value)}
-                                    className="border p-2 w-full"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block">Actual Lead Time (days)</label>
-                                <input
-                                    type="number"
-                                    value={actualLeadTime}
-                                    onChange={(e) => setActualLeadTime(e.target.value)}
                                     className="border p-2 w-full"
                                 />
                             </div>

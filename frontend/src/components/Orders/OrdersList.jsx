@@ -5,13 +5,13 @@ import OrderItem from './OrderItem';
 const OrdersList = () => {
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
-    
+
     // Fetch all orders when the component loads
     useEffect(() => {
         const fetchOrders = async () => {
             try {
                 const response = await getAllOrders();
-                setOrders(response.data);
+                setOrders(response.data);  // Align with backend response
             } catch (error) {
                 setError('Error fetching orders. Please try again later.');
             }
@@ -23,8 +23,8 @@ const OrdersList = () => {
     const handleUpdateOrderStatus = async (orderId, updatedData) => {
         try {
             await updateOrderStatus(orderId, updatedData);
-            const response = await getAllOrders(); // Fetch updated orders
-            setOrders(response.data);
+            const response = await getAllOrders(); // Fetch updated orders after status update
+            setOrders(response.data);  // Align with backend response
         } catch (error) {
             setError('Error updating order status. Please try again later.');
         }
@@ -36,10 +36,10 @@ const OrdersList = () => {
             {error && <div className="text-red-500">{error}</div>}
             <ul className="space-y-4">
                 {orders.map((order) => (
-                    <OrderItem 
-                        key={order.id} 
-                        order={order} 
-                        onUpdateStatus={handleUpdateOrderStatus} 
+                    <OrderItem
+                        key={order.order_id}  // Use `order_id` as the key
+                        order={order}
+                        onUpdateStatus={handleUpdateOrderStatus}
                     />
                 ))}
             </ul>
