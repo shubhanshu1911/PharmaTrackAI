@@ -50,4 +50,54 @@ const getRevenue = async (req, res) => {
     }
 };
 
-module.exports = { getSalesByProduct, getStockAlerts, getRevenue };
+
+const getSalesByYear = async (req, res) => {
+    const { year } = req.body;
+
+    if (!year || isNaN(year)) {
+        return res.status(400).json({ message: 'Invalid or missing year in the request.' });
+    }
+
+    try {
+        // Query for total sales for the entire year
+        const totalSalesQuery = `
+            SELECT COALESCE(SUM(total_amount), 0) AS total_revenue
+            FROM sales
+            WHERE EXTRACT(YEAR FROM sale_date) = $1
+        `;
+        const totalSalesResult = await pool.query(totalSalesQuery, [year]);
+        const totalRevenue = totalSalesResult.rows[0].total_revenue;
+
+        // Query for monthly sales breakdown
+        const monthlySalesQuery = `
+            SELECT
+                EXTRACT(MONTH FROM sale_date) AS month,
+                COALESCE(SUM(total_amount), 0) AS monthly_revenue
+            FROM sales
+            WHERE EXTRACT(YEAR FROM sale_date) = $1
+            GROUP BY month
+            ORDER BY month
+        `;
+        const monthlySalesResult = await pool.query(monthlySalesQuery, [year]);
+
+        // Create a response array for all months, initializing to 0 for months with no sales
+        const monthlySalesBreakdown = Array(12).fill(0); // [0, 0, 0, ..., 0]
+
+        // Populate the response array with actual monthly sales
+        monthlySalesResult.rows.forEach(row => {
+            const monthIndex = row.month - 1; // Months are 1-based, so subtract 1 for 0-based index
+            monthlySalesBreakdown[monthIndex] = row.monthly_revenue;
+        });
+
+        res.json({
+            year,
+            totalRevenue,
+            monthlySalesBreakdown,
+        });
+    } catch (err) {
+        console.error('Error fetching sales data by year:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+module.exports = { getSalesByProduct, getStockAlerts, getRevenue, getSalesByYear };

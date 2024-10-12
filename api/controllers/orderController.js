@@ -126,9 +126,39 @@ const getAllOrders = async (req, res) => {
     }
 };
 
+
+const getOrderStatusById = async (req, res) => {
+    const { order_id } = req.params;
+
+    if (!order_id || isNaN(order_id)) {
+        return res.status(400).json({ message: 'Invalid or missing order_id in the request.' });
+    }
+
+    try {
+        // Query to get the status of the order with the given order_id
+        const result = await pool.query(
+            'SELECT status FROM orders WHERE order_id = $1',
+            [order_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: `No order found with order_id: ${order_id}` });
+        }
+
+        // Return the status of the order
+        const status = result.rows[0].status;
+        res.json({ order_id, status });
+    } catch (err) {
+        console.error('Error fetching order status:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+
 module.exports = {
     placeOrder,
     updateOrderStatus,
     getSuppliersByProductId,
-    getAllOrders
+    getAllOrders,
+    getOrderStatusById
 };

@@ -12,4 +12,6 @@ router.get('/suppliers/:product_id', getSuppliersByProductId);
 // Route to get all orders
 router.get('/orders', getAllOrders);
 
+router.get('/order-status/:order_id', orderController.getOrderStatusById);
+
 module.exports = router;
