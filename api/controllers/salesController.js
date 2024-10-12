@@ -62,7 +62,7 @@ const addSale = async (req, res) => {
 // Get all sales
 const getAllSales = async (req, res) => {
     try {
-        const sales = await pool.query('SELECT * FROM sales');
+        const sales = await pool.query('SELECT * FROM sales ORDER BY sale_date DESC LIMIT 20');
         res.json(sales.rows);
     } catch (err) {
         console.error(err.message);
