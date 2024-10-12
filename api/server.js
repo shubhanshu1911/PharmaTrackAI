@@ -18,6 +18,7 @@ const inventoryRoutes = require('./routes/inventoryRoute');
 const analyticsRoutes = require('./routes/analyticsRoute'); 
 const productRoutes = require('./routes/productRoute');
 const predictRoute = require('./routes/predictRoute');
+const queryRoutes = require('./routes/queryRoutes');
 
 // Use routes with a versioned base path
 app.use('/api/v1/sales', salesRoutes);
@@ -26,6 +27,7 @@ app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/analytics', analyticsRoutes); 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/predict', predictRoute);
+app.use('/api/v1/LLMquery',queryRoutes);
 // Database connection
 pool.connect((err) => {
     if (err) {
