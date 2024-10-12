@@ -4,7 +4,7 @@ const fs = require('fs');
 // Controller to get demand data
 const getDemandData = (req, res) => {
     try {
-        const demandFilePath = path.join(__dirname, '..', 'data', 'demand.json');
+        const demandFilePath = path.join(__dirname, '..', 'data', 'demand_prediction.json');
         const demandData = JSON.parse(fs.readFileSync(demandFilePath, 'utf-8'));
         res.status(200).json(demandData);
     } catch (error) {
