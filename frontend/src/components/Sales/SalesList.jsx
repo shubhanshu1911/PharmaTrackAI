@@ -3,40 +3,48 @@ import { getAllSales } from '../../api/salesApi';
 import { getProductByID } from '../../api/productApi'; // Import the function to get product details
 
 const SalesList = () => {
-    const [salesWithProductNames, setSalesWithProductNames] = useState([]);
+    const [salesWithProductNames, setSalesWithProductNames] = useState([]);  // Cached sales data
     const [loading, setLoading] = useState(true);
+    const [hasFetched, setHasFetched] = useState(false);  // Track if data has been fetched
+    const [data, setData] = useState([]);
 
-    // Fetch sales and map product names
+    // Fetch sales and map product names only once
     useEffect(() => {
-        const fetchSales = async () => {
-            try {
-                const salesResponse = await getAllSales();
-                const salesData = salesResponse.data;
+        if (!hasFetched) {
+            const fetchSales = async () => {
+                try {
+                    const salesResponse = await getAllSales();
+                    const salesData = salesResponse.data;
 
-                // For each sale, fetch the corresponding product name by product_id
-                const salesWithNames = await Promise.all(
-                    salesData.map(async (sale) => {
-                        try {
-                            // Fetch the product by its ID
-                            const productResponse = await getProductByID(sale.product_id);
-                            const product = productResponse.data;
-                            return { ...sale, product_name: product.product_name };
-                        } catch (error) {
-                            console.error('Error fetching product name:', error);
-                            return { ...sale, product_name: 'Unknown' };
-                        }
-                    })
-                );
+                    // For each sale, fetch the corresponding product name by product_id
+                    const salesWithNames = await Promise.all(
+                        salesData.map(async (sale) => {
+                            try {
+                                // Fetch the product by its ID
+                                const productResponse = await getProductByID(sale.product_id);
+                                const product = productResponse.data;
+                                return { ...sale, product_name: product.product_name };
+                            } catch (error) {
+                                console.error('Error fetching product name:', error);
+                                return { ...sale, product_name: 'Unknown' };
+                            }
+                        })
+                    );
 
-                setSalesWithProductNames(salesWithNames);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching sales:', error);
-            }
-        };
+                    setSalesWithProductNames(salesWithNames);
+                    setData(salesWithNames);
+                    setLoading(false);
+                    setHasFetched(true);  // Mark as fetched to avoid re-fetching
+                } catch (error) {
+                    console.error('Error fetching sales:', error);
+                }
+            };
 
-        fetchSales();
-    }, []);
+            fetchSales();
+        }
+    }, [hasFetched]);  // Only fetch if not already fetched
+
+    console.log([hasFetched]);
 
     if (loading) return <div>Loading sales...</div>;
 

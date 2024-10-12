@@ -19,13 +19,12 @@ const OrdersList = () => {
                 const ordersWithNames = await Promise.all(
                     ordersData.map(async (order) => {
                         try {
-                            // Fetch the product by its ID
                             const productResponse = await getProductByID(order.product_id);
-                            const product = productResponse.data; // Assuming the response is a single object
-                            return { ...order, product_name: product.product_name }; // Add product name to order object
+                            const product = productResponse.data;
+                            return { ...order, product_name: product.product_name };
                         } catch (error) {
                             console.error('Error fetching product name:', error);
-                            return { ...order, product_name: 'Unknown' }; // Fallback if product fetch fails
+                            return { ...order, product_name: 'Unknown' };
                         }
                     })
                 );
@@ -39,14 +38,22 @@ const OrdersList = () => {
         };
 
         fetchOrders();
-    }, []);
+    }, []); // Run only once when the component mounts
 
     // Function to update the order status
     const handleUpdateOrderStatus = async (orderId, updatedData) => {
         try {
-            await updateOrderStatus(orderId, updatedData); // Pass the updatedData including actual_delivery_date
-            const response = await getAllOrders(); // Fetch updated orders after status update
-            setOrdersWithProductNames(response.data); // Align with backend response
+            // Optimistically update state by updating the relevant order in the list
+            setOrdersWithProductNames((prevOrders) =>
+                prevOrders.map((order) =>
+                    order.order_id === orderId
+                        ? { ...order, ...updatedData, actual_delivery_date: updatedData.actual_delivery_date || order.actual_delivery_date }
+                        : order
+                )
+            );
+
+            // Update on the server
+            await updateOrderStatus(orderId, updatedData);
         } catch (error) {
             setError('Error updating order status. Please try again later.');
         }
@@ -64,10 +71,10 @@ const OrdersList = () => {
             <ul className="space-y-4">
                 {ordersWithProductNames.slice().reverse().map((order, index) => (
                     <OrderItem
-                        key={order.order_id} // Use `order_id` as the key
+                        key={order.order_id}
                         order={order}
                         onUpdateStatus={handleUpdateOrderStatus}
-                        isLatest={latestIndex === ordersWithProductNames.length - 1 - index} // Pass if this order is the latest
+                        isLatest={latestIndex === ordersWithProductNames.length - 1 - index}
                     />
                 ))}
             </ul>
@@ -76,5 +83,3 @@ const OrdersList = () => {
 };
 
 export default OrdersList;
-
-
