@@ -4,9 +4,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-// Define database schema context for LLM
+// Updated database schema description for LLM
 const dbSchemaDescription = `
-Schema description:
+Schema description for a PostgreSQL database:
 - Table: products (product_id, product_name, company_name, formula, mrp, cost_price, tabs_per_strip, quantity_strips, total_pills, discount_percent, sale_price)
 - Table: suppliers (supplier_id, supplier_name, lead_time_claimed, lead_time_actual, reliability, contact)
 - Table: product_suppliers (product_supplier_id, product_id, supplier_id, claimed_lead_time_avg, actual_lead_time_avg, cost_price)
@@ -15,6 +15,23 @@ Schema description:
 - Table: inventory (inventory_id, product_id, quantity, reorder_level)
 - Table: sales (sale_id, product_id, quantity_sold, sale_date, total_amount, customer_name)
 - Table: customer_requests (request_id, customer_name, product_id, request_date, quantity_requested, status)
+
+Common query patterns for this database:
+- To filter by a specific year and month for dates, use:
+    "WHERE DATE_TRUNC('month', sale_date) = 'YYYY-MM-01'"
+- To get total sales for a specific period (e.g., total sales in January 2023):
+    "SELECT SUM(total_amount) FROM sales WHERE DATE_TRUNC('month', sale_date) = '2023-01-01'"
+- To filter by product name:
+    "SELECT * FROM products WHERE product_name ILIKE '%product_name%'"
+- To get the most reliable suppliers for a product:
+    "SELECT supplier_name FROM suppliers s JOIN supplier_product_reliability spr ON s.supplier_id = spr.supplier_id WHERE spr.product_id = X ORDER BY reliability_score DESC"
+- Always ensure proper joins for cross-referenced tables.
+- The sale_date, order_date, and request_date columns are DATE types, ensure date functions are used accordingly.
+
+Ensure that:
+- SQL queries should be compatible with PostgreSQL syntax.
+- Avoid using unsupported functions like STRFTIME, use DATE_TRUNC instead for date filtering.
+- Validate that table and column names exist and are correctly referenced.
 
 Relationships:
 - sales.product_id references products.product_id
@@ -29,15 +46,34 @@ Relationships:
 - customer_requests.product_id references products.product_id
 `;
 
+
 // Function to clean SQL query from Markdown artifacts
 const cleanSqlQuery = (query) => {
-    // Remove Markdown code block syntax
     query = query.replace(/```sql/g, '').replace(/```/g, '');
-    // Trim whitespace
     query = query.trim();
     return query;
 };
 
+// Function to validate if the generated SQL query is safe to execute
+const validateSqlQuery = (query) => {
+    // Basic validation: check for SQL injection patterns and prohibited keywords
+    const prohibitedKeywords = ['DROP', 'ALTER', 'DELETE'];
+    const lowerCaseQuery = query.toLowerCase();
+
+    for (const keyword of prohibitedKeywords) {
+        if (lowerCaseQuery.includes(keyword.toLowerCase())) {
+            return false; // Prohibit queries that could alter or delete schema
+        }
+    }
+    // Check if the query is empty
+    if (!query || query.length === 0) {
+        return false;
+    }
+
+    return true;
+};
+
+// Execute LLM query with error handling and validation
 const executeLLMQuery = async (req, res) => {
     const { prompt } = req.body;
 
@@ -46,25 +82,30 @@ const executeLLMQuery = async (req, res) => {
     }
 
     try {
-        // Combine the schema context with the natural language prompt
+        // Combine schema context with natural language prompt
         const fullPrompt = `${dbSchemaDescription}\nTranslate this natural language query into an SQL query: "${prompt}"`;
 
         console.log('Full Prompt:', fullPrompt);
 
-        // Use Gemini API to generate the SQL query with schema context
+        // Use Gemini API to generate SQL query
         const result = await model.generateContent(fullPrompt);
         const response = await result.response;
         let sqlQuery = response.text().trim();
 
-        // Clean the SQL query
+        // Clean and validate the SQL query
         sqlQuery = cleanSqlQuery(sqlQuery);
 
         console.log('Generated SQL Query:', sqlQuery);
 
-        // Execute the generated SQL query on the database
+        // Validate SQL query
+        if (!validateSqlQuery(sqlQuery)) {
+            return res.status(400).json({ message: 'Invalid or unsafe SQL query generated.' });
+        }
+
+        // Execute SQL query on the database
         const dbResult = await pool.query(sqlQuery);
 
-        // Check if the query is a SELECT query
+        // Check if it's a SELECT query
         if (sqlQuery.toLowerCase().startsWith('select')) {
             // Handle SELECT queries: Convert result to natural language
             const dbResultString = JSON.stringify(dbResult.rows);
@@ -81,7 +122,13 @@ const executeLLMQuery = async (req, res) => {
         }
     } catch (err) {
         console.error('Error processing the query:', err);
-        res.status(500).json({ message: 'Error processing the query.', error: err.message });
+        // Catch query errors and prevent server crash
+        if (err.code === '42601') {
+            // SQL syntax error
+            res.status(400).json({ message: 'Syntax error in generated SQL query.', error: err.message });
+        } else {
+            res.status(500).json({ message: 'Error processing the query.', error: err.message });
+        }
     }
 };
 
