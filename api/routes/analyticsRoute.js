@@ -12,3 +12,5 @@ router.get('/stock-alerts', analyticsController.getStockAlerts);
 router.get('/revenue', analyticsController.getRevenue);
 
 module.exports = router;
+
+

@@ -121,7 +121,7 @@ const SalesForm = () => {
 
             {/* Date Input */}
             <input
-                type="date"
+                type="text"
                 placeholder="Sale Date"
                 value={saleData.sale_date}
                 onChange={(e) => setSaleData({ ...saleData, sale_date: e.target.value })}
