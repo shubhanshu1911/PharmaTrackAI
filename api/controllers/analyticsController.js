@@ -52,8 +52,9 @@ const getRevenue = async (req, res) => {
 
 
 const getSalesByYear = async (req, res) => {
-    const { year } = req.body;
+    const { year } = req.params;  
 
+   
     if (!year || isNaN(year)) {
         return res.status(400).json({ message: 'Invalid or missing year in the request.' });
     }
@@ -80,15 +81,16 @@ const getSalesByYear = async (req, res) => {
         `;
         const monthlySalesResult = await pool.query(monthlySalesQuery, [year]);
 
-        // Create a response array for all months, initializing to 0 for months with no sales
-        const monthlySalesBreakdown = Array(12).fill(0); // [0, 0, 0, ..., 0]
+        // Initialize an array with 12 elements, all set to 0 (for each month)
+        const monthlySalesBreakdown = Array(12).fill(0); 
 
-        // Populate the response array with actual monthly sales
+        // Populate the array with actual sales data
         monthlySalesResult.rows.forEach(row => {
-            const monthIndex = row.month - 1; // Months are 1-based, so subtract 1 for 0-based index
+            const monthIndex = row.month - 1; // Month is 1-based, so convert to 0-based index
             monthlySalesBreakdown[monthIndex] = row.monthly_revenue;
         });
 
+        
         res.json({
             year,
             totalRevenue,

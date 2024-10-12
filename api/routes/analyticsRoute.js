@@ -9,9 +9,9 @@ router.get('/sales-by-product/:product_id', analyticsController.getSalesByProduc
 router.get('/stock-alerts', analyticsController.getStockAlerts);
 
 
-router.get('/revenue', analyticsController.getRevenue);
+router.get('/revenue', analyticsController.getRevenue);//sales by month
 
-router.post('/sales-by-year', analyticsController.getSalesByYear);
+router.get('/sales-by-year/:year', analyticsController.getSalesByYear);
 
 module.exports = router;
 
