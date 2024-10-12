@@ -102,4 +102,20 @@ const getSalesByYear = async (req, res) => {
     }
 };
 
-module.exports = { getSalesByProduct, getStockAlerts, getRevenue, getSalesByYear };
+
+// Controller to get count of pending orders
+const getPendingOrderCount = async (req, res) => {
+    try {
+        const query = 'SELECT COUNT(*) FROM orders WHERE status = $1';
+        const result = await pool.query(query, ['pending']);
+        const pendingOrderCount = result.rows[0].count;
+
+        res.status(200).json({ pendingOrderCount });
+    } catch (error) {
+        console.error('Error fetching pending orders count:', error);
+        res.status(500).json({ message: 'Error fetching pending orders count', error: error.message });
+    }
+};
+
+
+module.exports = { getSalesByProduct, getStockAlerts, getRevenue, getSalesByYear,getPendingOrderCount };

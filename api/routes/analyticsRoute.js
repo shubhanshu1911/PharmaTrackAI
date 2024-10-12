@@ -13,6 +13,8 @@ router.get('/revenue', analyticsController.getRevenue);//sales by month
 
 router.get('/sales-by-year/:year', analyticsController.getSalesByYear);
 
+router.get('/pending-orders-count', analyticsController.getPendingOrderCount);
+
 module.exports = router;
 
 
