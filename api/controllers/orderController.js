@@ -118,7 +118,7 @@ const getSuppliersByProductId = async (req, res) => {
 // Controller to get all orders
 const getAllOrders = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM orders');
+        const result = await pool.query('SELECT * FROM orders ORDER BY order_id ASC');
         res.status(200).json(result.rows);
     } catch (err) {
         console.error(err.message);
