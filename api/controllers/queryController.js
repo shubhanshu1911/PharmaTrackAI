@@ -7,12 +7,26 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 // Define database schema context
 const dbSchemaDescription = `
 Schema description:
-- Table: products (product_id, product_name, price, quantity)
+- Table: products (product_id, product_name, company_name, formula, mrp, cost_price, tabs_per_strip, quantity_strips, total_pills, discount_percent, sale_price)
+- Table: suppliers (supplier_id, supplier_name, lead_time_claimed, lead_time_actual, reliability, contact)
+- Table: product_suppliers (product_supplier_id, product_id, supplier_id, claimed_lead_time_avg, actual_lead_time_avg, cost_price)
+- Table: supplier_product_reliability (supplier_product_reliability_id, supplier_id, product_id, claimed_lead_time, actual_lead_time, reliability_score)
+- Table: orders (order_id, order_date, product_id, quantity, supplier_id, total_cost, status, claimed_lead_time, actual_delivery_date, actual_lead_time)
+- Table: inventory (inventory_id, product_id, quantity, reorder_level)
 - Table: sales (sale_id, product_id, quantity_sold, sale_date, total_amount, customer_name)
-- Table: customers (customer_id, customer_name, email, phone_number)
+- Table: customer_requests (request_id, customer_name, product_id, request_date, quantity_requested, status)
+
 Relationships:
 - sales.product_id references products.product_id
 - sales.customer_id references customers.customer_id
+- orders.product_id references products.product_id
+- orders.supplier_id references suppliers.supplier_id
+- inventory.product_id references products.product_id
+- product_suppliers.product_id references products.product_id
+- product_suppliers.supplier_id references suppliers.supplier_id
+- supplier_product_reliability.product_id references products.product_id
+- supplier_product_reliability.supplier_id references suppliers.supplier_id
+- customer_requests.product_id references products.product_id
 `;
 
 // Controller function to handle the LLM query
