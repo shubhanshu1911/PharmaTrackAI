@@ -2,9 +2,9 @@ const pool = require('../db');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-// Define database schema context
+// Define database schema context for LLM
 const dbSchemaDescription = `
 Schema description:
 - Table: products (product_id, product_name, company_name, formula, mrp, cost_price, tabs_per_strip, quantity_strips, total_pills, discount_percent, sale_price)
@@ -29,7 +29,15 @@ Relationships:
 - customer_requests.product_id references products.product_id
 `;
 
-// Controller function to handle the LLM query
+// Function to clean SQL query from Markdown artifacts
+const cleanSqlQuery = (query) => {
+    // Remove Markdown code block syntax
+    query = query.replace(/```sql/g, '').replace(/```/g, '');
+    // Trim whitespace
+    query = query.trim();
+    return query;
+};
+
 const executeLLMQuery = async (req, res) => {
     const { prompt } = req.body;
 
@@ -41,13 +49,16 @@ const executeLLMQuery = async (req, res) => {
         // Combine the schema context with the natural language prompt
         const fullPrompt = `${dbSchemaDescription}\nTranslate this natural language query into an SQL query: "${prompt}"`;
 
-        // Use Gemini API to generate the SQL query with schema context
-        const aiResponse = await model.generateContent({
-            prompt: fullPrompt
-        });
+        console.log('Full Prompt:', fullPrompt);
 
-        // Extract the SQL query from the Gemini API response
-        const sqlQuery = aiResponse.data.generations[0].text.trim();
+        // Use Gemini API to generate the SQL query with schema context
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        let sqlQuery = response.text().trim();
+
+        // Clean the SQL query
+        sqlQuery = cleanSqlQuery(sqlQuery);
+
         console.log('Generated SQL Query:', sqlQuery);
 
         // Execute the generated SQL query on the database
@@ -57,11 +68,12 @@ const executeLLMQuery = async (req, res) => {
         if (sqlQuery.toLowerCase().startsWith('select')) {
             // Handle SELECT queries: Convert result to natural language
             const dbResultString = JSON.stringify(dbResult.rows);
-            const aiNaturalLanguageResponse = await model.generateContent({
-                prompt: `Convert this SQL result into a natural language response: "${dbResultString}"`
-            });
+            const nlResult = await model.generateContent(`Convert this SQL result into a natural language response: "${dbResultString}"`);
+            const nlResponse = await nlResult.response;
+            const naturalLanguageResponse = nlResponse.text().trim();
 
-            const naturalLanguageResponse = aiNaturalLanguageResponse.data.generations[0].text.trim();
+            console.log('Natural Language Response:', naturalLanguageResponse);
+
             res.json({ naturalLanguageResponse, sqlQuery, dbResult: dbResult.rows });
         } else {
             // Handle non-SELECT queries (INSERT, UPDATE, DELETE)
