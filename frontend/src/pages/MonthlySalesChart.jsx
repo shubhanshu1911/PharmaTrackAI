@@ -48,23 +48,23 @@ const MonthlySalesChart = ({ year }) => {
             <div className="flex-1 min-w-0 p-2 bg-white shadow rounded-lg mx-3">
                 <h2 className="text-xl font-semibold mb-4">Monthly Sales</h2>
                 <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={monthlySalesData}>
+                    <BarChart data={monthlySalesData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="monthly_revenue" stroke="#8884d8" />
-                    </LineChart>
+                        <Bar dataKey="monthly_revenue" fill="#8884d8" />
+                    </BarChart>
                 </ResponsiveContainer>
             </div>
 
             <div className="flex-1 min-w-0 p-2 bg-white shadow rounded-lg">
-                <h2 className="text-xl font-semibold mb-4">Predicted Demands</h2>
+                <h2 className="text-xl font-semibold mb-4">Predicted Demands (Weekly) </h2>
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={demandData}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="productName" />
+                        <XAxis dataKey="productName" tick={false}/>
                         <YAxis />
                         <Tooltip />
                         <Legend />

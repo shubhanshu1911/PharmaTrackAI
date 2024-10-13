@@ -69,7 +69,7 @@ const OrdersList = () => {
         <div>
             <h2 className="text-xl font-semibold mb-4">Orders List</h2>
             <ul className="space-y-4">
-                {ordersWithProductNames.slice().reverse().map((order, index) => (
+                {ordersWithProductNames.map((order, index) => (
                     <OrderItem
                         key={order.order_id}
                         order={order}

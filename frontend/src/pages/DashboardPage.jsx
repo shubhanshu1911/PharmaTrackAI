@@ -17,7 +17,7 @@ const DashboardPage = () => {
                 setTotalSales(salesData.totalRevenue);
 
                 const pendingOrdersData = await getPendingOrderCount();
-                setPendingOrders(pendingOrdersData.length || 0);
+                setPendingOrders(pendingOrdersData.pendingOrderCount);
 
                 const stockAlertsData = await getStockAlerts();
                 setLowStockAlerts(stockAlertsData.length);
