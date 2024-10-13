@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const RequestForm = () => {
     const [requestData, setRequestData] = useState({
+        customer_name: '',  // Added customer_name here
         product_id: '',
         quantity_requested: '',
         request_date: '',
@@ -45,7 +46,6 @@ const RequestForm = () => {
     // Fetch suppliers for the selected product
     const fetchSuppliers = async () => {
         if (!requestData.product_id) return;
-        console.log(requestData.product_id);
 
         try {
             const response = await axios.get(`http://localhost:5000/api/v1/orders/suppliers/${requestData.product_id}`);
@@ -69,15 +69,17 @@ const RequestForm = () => {
             alert("Please select a supplier before placing the request.");
             return;
         }
+
         try {
+            // Submit form data with all required fields
             await axios.post('http://localhost:5000/api/v1/request/add-request', {
-                ...requestData
-                // supplier_id: selectedSupplier.supplier_id
+                ...requestData, // includes customer_name, supplier_id, product_id, quantity_requested, request_date
             });
+
             alert('Request submitted successfully!');
             // Clear form fields
             setProductName('');
-            setRequestData({ product_id: '', quantity_requested: '', request_date: '', supplier_id: '' });
+            setRequestData({ customer_name: '', product_id: '', quantity_requested: '', request_date: '', supplier_id: '' });
             setSelectedSupplier(null);
             setSuppliers([]);
             setSuggestions([]);
@@ -103,9 +105,12 @@ const RequestForm = () => {
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px', overflowY: 'auto' }}>
             <h2 className="text-xl font-semibold mb-4">Submit Customer Request</h2>
+            
             <input
                 type="text"
                 placeholder="Customer Name (Optional)"
+                value={requestData.customer_name}
+                onChange={e => setRequestData({ ...requestData, customer_name: e.target.value })}
                 className="border p-2 w-full mb-4"
             />
 

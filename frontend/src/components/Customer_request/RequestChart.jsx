@@ -8,7 +8,7 @@ const RequestChart = () => {
     useEffect(() => {
         const fetchRequestData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/v1/requests');
+                const response = await axios.get('http://localhost:5000/api/v1/request/requests');
                 const formattedData = response.data.map((request) => ({
                     product_id: request.product_id,
                     quantity_requested: request.quantity_requested,

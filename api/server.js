@@ -29,7 +29,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/predict', predictRoute);
 app.use('/api/v1/LLMquery',queryRoutes);
-app.use('api/v1/request',requestRoutes);
+app.use('/api/v1/request',requestRoutes);
 // Database connection
 pool.connect((err) => {
     if (err) {
