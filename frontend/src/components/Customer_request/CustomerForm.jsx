@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { placeOrder } from '../../api/ordersApi';
 import axios from 'axios';
 
-const OrderForm = () => {
-    const [orderData, setOrderData] = useState({
+const RequestForm = () => {
+    const [requestData, setRequestData] = useState({
         product_id: '',
-        quantity: '',
-        order_date: '', 
-        claimed_lead_time: '', 
+        quantity_requested: '',
+        request_date: '',
         supplier_id: '',
     });
     const [productName, setProductName] = useState('');
@@ -17,6 +15,7 @@ const OrderForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Fetch product suggestions based on user input
     const fetchProductSuggestions = async (query) => {
         if (query.length < 2) {
             setSuggestions([]);
@@ -27,8 +26,7 @@ const OrderForm = () => {
 
         try {
             const response = await axios.get(`http://localhost:5000/api/v1/products/products?query=${query}`);
-            console.log(response);
-            setSuggestions(response.data);
+            setSuggestions(response.data);  // Adjust API response as needed
         } catch (error) {
             console.error('Error fetching product suggestions:', error);
             setError('Failed to fetch product suggestions');
@@ -37,62 +35,79 @@ const OrderForm = () => {
         }
     };
 
+    // Handle product name change and fetch suggestions
     const handleProductNameChange = (e) => {
         const value = e.target.value;
         setProductName(value);
         fetchProductSuggestions(value);
     };
 
+    // Fetch suppliers for the selected product
     const fetchSuppliers = async () => {
-        if (!orderData.product_id) return;
+        if (!requestData.product_id) return;
+        console.log(requestData.product_id);
 
         try {
-            const response = await axios.get(`http://localhost:5000/api/v1/orders/suppliers/${orderData.product_id}`);
-            setSuppliers(response.data);
+            const response = await axios.get(`http://localhost:5000/api/v1/orders/suppliers/${requestData.product_id}`);
+            setSuppliers(response.data);  // Adjust based on API response
         } catch (error) {
             console.error('Error fetching suppliers:', error);
         }
     };
 
+    // Fetch suppliers when a product is selected
     useEffect(() => {
-        if (orderData.product_id) {
+        if (requestData.product_id) {
             fetchSuppliers();
         }
-    }, [orderData.product_id]);
+    }, [requestData.product_id]);
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedSupplier) {
-            alert("Please select a supplier before placing the order.");
+            alert("Please select a supplier before placing the request.");
             return;
         }
         try {
-            await placeOrder({ ...orderData, supplier_id: selectedSupplier.supplier_id });
-            alert('Order placed successfully!');
+            await axios.post('http://localhost:5000/api/v1/request/add-request', {
+                ...requestData
+                // supplier_id: selectedSupplier.supplier_id
+            });
+            alert('Request submitted successfully!');
+            // Clear form fields
             setProductName('');
-            setOrderData({ product_id: '', quantity: '', order_date: '', claimed_lead_time: '', supplier_id: '' });
+            setRequestData({ product_id: '', quantity_requested: '', request_date: '', supplier_id: '' });
             setSelectedSupplier(null);
             setSuppliers([]);
             setSuggestions([]);
         } catch (err) {
-            console.error(err);
+            console.error('Error placing request:', err);
+            setError('Failed to place request');
         }
     };
 
+    // Handle suggestion click
     const handleSuggestionClick = (product) => {
         setProductName(product.product_name);
-        setOrderData({ ...orderData, product_id: product.product_id });
+        setRequestData({ ...requestData, product_id: product.product_id });
         setSuggestions([]);
     };
 
+    // Handle supplier click
     const handleSupplierClick = (supplier) => {
         setSelectedSupplier(supplier);
-        setOrderData({ ...orderData, supplier_id: supplier.supplier_id });
+        setRequestData({ ...requestData, supplier_id: supplier.supplier_id });
     };
 
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px', overflowY: 'auto' }}>
-            <h2 className="text-xl font-semibold mb-4">Place New Order</h2>
+            <h2 className="text-xl font-semibold mb-4">Submit Customer Request</h2>
+            <input
+                type="text"
+                placeholder="Customer Name (Optional)"
+                className="border p-2 w-full mb-4"
+            />
 
             <input
                 type="text"
@@ -116,7 +131,7 @@ const OrderForm = () => {
                     ))}
                 </ul>
             )}
-            
+
             {suppliers.length > 0 ? (
                 <div className="bg-white border border-gray-300 rounded p-4 mb-4">
                     <h3 className="text-lg font-semibold mb-2">Suppliers:</h3>
@@ -127,9 +142,7 @@ const OrderForm = () => {
                                 onClick={() => handleSupplierClick(supplier)}
                                 className={`mb-2 cursor-pointer hover:bg-gray-200 ${selectedSupplier?.supplier_id === supplier.supplier_id ? 'bg-blue-100' : ''}`}
                             >
-                                Supplier Name: {supplier.supplier_name},
-                                cost per strip: {supplier.cost_price}
-
+                                Supplier Name: {supplier.supplier_name}, Cost per unit: {supplier.cost_price}
                             </li>
                         ))}
                     </ul>
@@ -140,41 +153,27 @@ const OrderForm = () => {
 
             <input
                 type="number"
-                placeholder="Quantity"
-                value={orderData.quantity}
-                onChange={e => setOrderData({ ...orderData, quantity: e.target.value })}
+                placeholder="Quantity Requested"
+                value={requestData.quantity_requested}
+                onChange={e => setRequestData({ ...requestData, quantity_requested: e.target.value })}
                 className="border p-2 w-full mb-4"
             />
 
-            
-
-            {/* Date Input */}
             <input
                 type="date"
-                placeholder="Order Date"
-                value={orderData.order_date}
-                onChange={e => setOrderData({ ...orderData, order_date: e.target.value })}
+                placeholder="Request Date"
+                value={requestData.request_date}
+                onChange={e => setRequestData({ ...requestData, request_date: e.target.value })}
                 className="border p-2 w-full mb-4"
             />
-
-            {/* Lead Time Input */}
-            <input
-                type="number"
-                placeholder="Lead time (days)"
-                value={orderData.claimed_lead_time}
-                onChange={e => setOrderData({ ...orderData, claimed_lead_time: e.target.value })}
-                className="border p-2 w-full mb-4"
-            />
-
-            
 
             {selectedSupplier && (
                 <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded mt-4">
-                    Place Order
+                    Submit Request
                 </button>
             )}
         </form>
     );
 };
 
-export default OrderForm;
+export default RequestForm;

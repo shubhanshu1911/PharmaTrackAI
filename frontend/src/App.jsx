@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import OrdersPage from './pages/OrdersPage';
 import SalesPage from './pages/SalesPage';
 import InventoryPage from './pages/InventoryPage';
+import CustomerRequest from './pages/CustomerRequest';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
             <li><Link to="/orders">Orders</Link></li>
             <li><Link to="/sales">Sales</Link></li>
             <li><Link to="/inventory">Inventory</Link></li>
+            <li><Link to="/CustomerRequest">Customer Request</Link></li>
           </ul>
         </nav>
         <main className="p-8">
@@ -23,6 +25,7 @@ const App = () => {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/sales" element={<SalesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/CustomerRequest" element={<CustomerRequest />} />
           </Routes>
         </main>
       </div>
