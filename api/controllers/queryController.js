@@ -6,6 +6,9 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
 // Updated database schema description for LLM
 const dbSchemaDescription = `
+you are an expert in converting English questions to SQL query!
+given below is the schema of the database on which you will have to answer all questions.
+this is a medical store database the products here are medicines.
 Schema description for a PostgreSQL database:
 - Table: products (product_id, product_name, company_name, formula, mrp, cost_price, tabs_per_strip, quantity_strips, total_pills, discount_percent, sale_price)
 - Table: suppliers (supplier_id, supplier_name, lead_time_claimed, lead_time_actual, reliability, contact)
