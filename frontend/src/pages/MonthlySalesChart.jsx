@@ -25,7 +25,8 @@ const MonthlySalesChart = ({ year }) => {
 
         const fetchDemandData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/v1/predict/demand');
+                // 
+                const response = await axios.get('http://127.0.0.1:8000/product-demand?week=5');
                 console.log('API Response:', response.data); // Log the response for debugging
 
                 const demandResponse = Object.entries(response.data).map(([productName, { demand }]) => ({
@@ -60,7 +61,7 @@ const MonthlySalesChart = ({ year }) => {
             </div>
 
             <div className="flex-1 min-w-0 p-2 bg-white shadow rounded-lg">
-                <h2 className="text-xl font-semibold mb-4">Predicted Demands (Weekly) </h2>
+                <h2 className="text-xl font-semibold mb-4">Predicted Demands of Upcoming Week </h2>
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={demandData}>
                         <CartesianGrid strokeDasharray="3 3" />
