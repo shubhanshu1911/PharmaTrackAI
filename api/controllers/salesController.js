@@ -149,5 +149,35 @@ const checkROPStatus = async (req, res) => {
 };
 
 
+// Controller to get products with quantity less than ROP/4
+const getProductsBelowROP = async (req, res) => {
+    try {
+        // Fetch all product names and quantities from the inventory table
+        const productsInventory = await pool.query(`
+            SELECT p.product_id, p.product_name, i.quantity 
+            FROM products p
+            JOIN inventory i ON p.product_id = i.product_id
+        `);
 
-module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus};
+        // Fetch the ROP data from the FastAPI API
+        const ropResponse = await axios.get('http://127.0.0.1:8000/rop');
+        const ropData = ropResponse.data;
+
+        // Filter products whose quantity is less than ROP/4
+        const productsBelowROP = productsInventory.rows.filter(product => {
+            const productROP = ropData[product.product_id]?.rop;
+            if (!productROP) return false; // Skip if no ROP data for this product
+
+            const weeklyROP = productROP / 4;
+            return product.quantity < weeklyROP; // Compare quantity with weekly ROP
+        });
+
+        res.status(200).json(productsBelowROP);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus, getProductsBelowROP};

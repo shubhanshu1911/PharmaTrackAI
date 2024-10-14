@@ -12,4 +12,5 @@ router.delete('/delete/:sale_id',salesController.deleteSale);
 
 router.get('/ROP/:product_id', salesController.checkROPStatus);
 
+router.get('/below-rop', salesController.getProductsBelowROP);
 module.exports = router;
