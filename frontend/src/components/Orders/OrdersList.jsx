@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { getAllOrders, updateOrderStatus } from '../../api/ordersApi';
+import { getAllOrders, updateOrderStatus, deleteOrder } from '../../api/ordersApi';
 import OrderItem from './OrderItem';
-import { getProductByID } from '../../api/productApi'; // Import the function to get product details
+import { getProductByID } from '../../api/productApi';
 
 const OrdersList = () => {
     const [ordersWithProductNames, setOrdersWithProductNames] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch orders and product names
     useEffect(() => {
         const fetchOrders = async () => {
             try {
                 const response = await getAllOrders();
                 const ordersData = response.data;
 
-                // For each order, fetch the corresponding product name by product_id
                 const ordersWithNames = await Promise.all(
                     ordersData.map(async (order) => {
                         try {
@@ -38,12 +36,10 @@ const OrdersList = () => {
         };
 
         fetchOrders();
-    }, []); // Run only once when the component mounts
+    }, []);
 
-    // Function to update the order status
     const handleUpdateOrderStatus = async (orderId, updatedData) => {
         try {
-            // Optimistically update state by updating the relevant order in the list
             setOrdersWithProductNames((prevOrders) =>
                 prevOrders.map((order) =>
                     order.order_id === orderId
@@ -52,17 +48,28 @@ const OrdersList = () => {
                 )
             );
 
-            // Update on the server
             await updateOrderStatus(orderId, updatedData);
         } catch (error) {
             setError('Error updating order status. Please try again later.');
         }
     };
 
+    const handleDeleteOrder = async (orderId) => {
+        try {
+            await deleteOrder(orderId);
+
+            // Remove the deleted order from the state
+            setOrdersWithProductNames((prevOrders) =>
+                prevOrders.filter((order) => order.order_id !== orderId)
+            );
+        } catch (error) {
+            setError('Error deleting order. Please try again later.');
+        }
+    };
+
     if (loading) return <div>Loading orders...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
 
-    // Get the index of the latest entry in the orders list
     const latestIndex = ordersWithProductNames.length - 1;
 
     return (
@@ -74,6 +81,7 @@ const OrdersList = () => {
                         key={order.order_id}
                         order={order}
                         onUpdateStatus={handleUpdateOrderStatus}
+                        onDeleteOrder={handleDeleteOrder}
                         isLatest={latestIndex === ordersWithProductNames.length - 1 - index}
                     />
                 ))}

@@ -1,55 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { getProductByID } from '../../api/productApi'; // Assuming the function is in ordersApi.js
+import { getProductByID } from '../../api/productApi';
 
-const OrderItem = ({ order, onUpdateStatus, isLatest }) => {
+const OrderItem = ({ order, onUpdateStatus, isLatest, onDeleteOrder }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [status, setStatus] = useState(order.status);
     const [actualDeliveryDate, setActualDeliveryDate] = useState(order.actual_delivery_date || '');
-    const [productName, setProductName] = useState(''); // State to hold the product name
+    const [productName, setProductName] = useState('');
+    const [isEditable, setIsEditable] = useState(!order.actual_delivery_date);
 
-    // Fetch the product name when the component mounts
     useEffect(() => {
         const fetchProductName = async () => {
             try {
                 const response = await getProductByID(order.product_id);
-                setProductName(response.data.product_name); // Assuming the product_name is in response.data
+                setProductName(response.data.product_name);
             } catch (error) {
                 console.error('Error fetching product name:', error);
-                setProductName('Unknown'); // Fallback if fetch fails
+                setProductName('Unknown');
             }
         };
 
-        fetchProductName(); // Trigger the product name fetch
+        fetchProductName();
     }, [order.product_id]);
 
-    // Function to format the date
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' }; // Define formatting options
-        return new Date(dateString).toLocaleDateString(undefined, options); // Format date
+        if (!dateString) return 'Not delivered yet';
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
     const handleSubmit = () => {
         const updatedData = {
             status,
-            actual_delivery_date: status === 'delivered' ? actualDeliveryDate : null, // Send date only if status is delivered
+            actual_delivery_date: status === 'delivered' ? actualDeliveryDate : null,
         };
 
         onUpdateStatus(order.order_id, updatedData)
             .then(() => {
-                setIsEditing(false); // Exit editing mode after successful update
+                setIsEditing(false);
+                setIsEditable(false);
             })
-            .catch((err) => {
-                console.error('Failed to update order status:', err);
-            });
+            .catch((err) => console.error('Failed to update order status:', err));
+    };
+
+    const handleDelete = () => {
+        if (window.confirm('Are you sure you want to delete this order?')) {
+            onDeleteOrder(order.order_id);
+        }
     };
 
     return (
         <li className={`bg-white p-4 rounded shadow-md ${isLatest ? 'border-2 border-blue-500' : ''}`}>
-            <div>Product Name: {productName}</div> {/* Show the fetched product name */}
-            <div>Order Date: {formatDate(order.order_date)}</div> {/* Format the order date */}
+            <div>Product Name: {productName}</div>
+            <div>Order Date: {formatDate(order.order_date)}</div>
             <div>Total Cost: {order.total_cost}</div>
             <div>Quantity: {order.quantity}</div>
-            <div>Actual Delivery Date: {formatDate(order.actual_delivery_date) || 'Not delivered yet'}</div>
+            <div>Actual Delivery Date: {formatDate(order.actual_delivery_date)}</div>
             <div>Claimed Lead Time: {order.claimed_lead_time}</div>
             <div>Actual Lead Time: {order.actual_lead_time}</div>
             <div>Status: {order.status}</div>
@@ -78,32 +83,20 @@ const OrderItem = ({ order, onUpdateStatus, isLatest }) => {
                         </div>
                     )}
 
-                    <button
-                        onClick={handleSubmit}
-                        className="bg-blue-600 text-white py-2 px-4 rounded mt-4"
-                    >
-                        Update Status
-                    </button>
-
-                    <button
-                        onClick={() => setIsEditing(false)}
-                        className="ml-4 bg-gray-600 text-white py-2 px-4 rounded mt-4"
-                    >
-                        Cancel
-                    </button>
+                    <button onClick={handleSubmit} className="bg-blue-600 text-white py-2 px-4 rounded mt-4">Update Status</button>
+                    <button onClick={() => setIsEditing(false)} className="ml-4 bg-gray-600 text-white py-2 px-4 rounded mt-4">Cancel</button>
                 </div>
             ) : (
-                <button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-green-600 text-white py-2 px-4 rounded mt-4"
-                >
-                    Edit Order
-                </button>
+                isEditable && (
+                    <button onClick={() => setIsEditing(true)} className="bg-green-600 text-white py-2 px-4 rounded mt-4">Edit Order</button>
+                )
             )}
+
+            {!isEditable && <p className="text-gray-600 mt-4">Order already updated</p>}
+
+            <button onClick={handleDelete} className="bg-red-600 text-white py-2 px-4 rounded mt-4">Delete Order</button>
         </li>
     );
 };
 
 export default OrderItem;
-
-

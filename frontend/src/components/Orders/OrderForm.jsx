@@ -49,6 +49,7 @@ const OrderForm = () => {
         try {
             const response = await axios.get(`http://localhost:5000/api/v1/orders/suppliers/${orderData.product_id}`);
             setSuppliers(response.data);
+            console.log(response.data);
         } catch (error) {
             console.error('Error fetching suppliers:', error);
         }
@@ -128,7 +129,8 @@ const OrderForm = () => {
                                 className={`mb-2 cursor-pointer hover:bg-gray-200 ${selectedSupplier?.supplier_id === supplier.supplier_id ? 'bg-blue-100' : ''}`}
                             >
                                 Supplier Name: {supplier.supplier_name},
-                                cost per strip: {supplier.cost_price}
+                                cost per strip: {supplier.cost_price},
+                                Reliability score : {supplier.supplier_score}
 
                             </li>
                         ))}

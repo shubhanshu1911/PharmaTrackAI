@@ -28,6 +28,9 @@ export const getAllOrders = async () => {
     return axios.get(`${API_URL}/orders`);
 };
 
+export const deleteOrder = async (orderId) => {
+    return await axios.delete(`${API_URL}/orders/${orderId}`);
+};
 
 // Function to get product details by product_id
 export const getProductByID = async (product_id) => axios.get(`${PRODUCT_API_URL}/products/${product_id}`);

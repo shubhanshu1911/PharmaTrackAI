@@ -36,15 +36,15 @@ const DashboardPage = () => {
         <div className="container mx-auto p-4">
             <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-blue-50 hover:bg-blue-100 p-6 rounded-lg shadow-md transition duration-300">
+                <div className="bg-blue-100 hover:bg-blue-200 p-6 rounded-lg shadow-md transition duration-300">
                     <h2 className="text-xl font-semibold">Total Sales (Yearly)</h2>
                     <p className="text-2xl mt-2">₹ {totalSales}</p>
                 </div>
-                <div className="bg-green-50 hover:bg-green-100 p-6 rounded-lg shadow-md transition duration-300">
+                <div className="bg-green-200 hover:bg-green-300 p-6 rounded-lg shadow-md transition duration-300">
                     <h2 className="text-xl font-semibold">Pending Orders</h2>
                     <p className="text-2xl mt-2">{pendingOrders}</p>
                 </div>
-                <div className="bg-yellow-50 hover:bg-yellow-100 p-6 rounded-lg shadow-md transition duration-300">
+                <div className="bg-yellow-100 hover:bg-yellow-200 p-6 rounded-lg shadow-md transition duration-300">
                     <h2 className="text-xl font-semibold">Low Stock Alerts</h2>
                     <p className="text-2xl mt-2">{lowStockAlerts}</p>
                 </div>
