@@ -8,6 +8,6 @@ router.get('/', salesController.getAllSales);
 
 router.get('/:sale_id', salesController.getSaleById);
 
-router.delete('/sales/:sale_id',salesController.deleteSale);
+router.delete('/delete/:sale_id',salesController.deleteSale);
 
 module.exports = router;
