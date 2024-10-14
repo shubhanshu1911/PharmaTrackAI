@@ -30,26 +30,13 @@ exports.addRequest = async (req, res) => {
 };
 
 
-// Get weekly requests for each product
-exports.getWeeklyRequests = async (req, res) => {
+// Get all customer requests
+exports.getAllRequests = async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT 
-                product_id,
-                DATE_TRUNC('week', request_date) AS week,
-                COUNT(*) AS request_count
-            FROM 
-                customer_requests
-            GROUP BY 
-                product_id, week
-            ORDER BY 
-                week DESC, product_id;
-        `);
-
+        const result = await pool.query('SELECT * FROM customer_requests ORDER BY request_date DESC;');
         res.status(200).json(result.rows);
     } catch (error) {
-        console.error('Error fetching weekly requests:', error);
+        console.error('Error fetching requests:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
