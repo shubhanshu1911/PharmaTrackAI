@@ -160,17 +160,44 @@ const getProductsBelowROP = async (req, res) => {
         `);
 
         // Fetch the ROP data from the FastAPI API
-        const ropResponse = await axios.get('http://127.0.0.1:8000/rop');
+        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
         const ropData = ropResponse.data;
 
-        // Filter products whose quantity is less than ROP/4
-        const productsBelowROP = productsInventory.rows.filter(product => {
-            const productROP = ropData[product.product_id]?.rop;
-            if (!productROP) return false; // Skip if no ROP data for this product
+        // Fetch the weekly demand from the FastAPI API (using week 5 as query parameter)
+        const week = 5; // Can be dynamic depending on the current week or system requirements
+        const demandResponse = await axios.get(`http://127.0.0.1:8000/product-demand?week=${week}`);
+        const demandData = demandResponse.data;
 
+        // Filter products whose quantity is less than the required stock level (ROP/4 or weekly demand)
+        const productsBelowROP = productsInventory.rows.map(product => {
+            const productROP = ropData[product.product_id]?.rop;
+            const weeklyDemand = demandData[product.product_id]?.weekly_demand;
+
+            // Skip if either ROP or demand data is missing for this product
+            if (!productROP || !weeklyDemand) return null;
+
+            // Calculate weekly ROP
             const weeklyROP = productROP / 4;
-            return product.quantity < weeklyROP; // Compare quantity with weekly ROP
-        });
+
+            // Determine the higher value between weekly ROP and weekly demand
+            const requiredStockLevel = Math.max(weeklyROP, weeklyDemand);
+
+            // Check if the quantity is less than the required stock level
+            if (product.quantity < requiredStockLevel) {
+                // Calculate order amount to reach the required stock level
+                const orderAmount = requiredStockLevel - product.quantity;
+
+                return {
+                    product_id: product.product_id,
+                    product_name: product.product_name,
+                    quantity: product.quantity,
+                    required_stock: requiredStockLevel,
+                    order_amount: orderAmount // Recommended order amount based on demand or ROP
+                };
+            }
+
+            return null; // Skip products that have enough stock
+        }).filter(product => product !== null); // Remove null values
 
         res.status(200).json(productsBelowROP);
     } catch (err) {
@@ -178,6 +205,5 @@ const getProductsBelowROP = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 
 module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus, getProductsBelowROP};
