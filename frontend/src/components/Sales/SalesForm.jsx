@@ -138,7 +138,7 @@ const SalesForm = () => {
                 placeholder="Quantity Sold"
                 value={saleData.quantity_sold}
                 onChange={(e) => {
-                    const value = e.target.value;
+                    const value = parseInt(e.target.value,10);
                     if (value < 0) {
                         setQuantityError('Quantity cannot be negative.');
                         setSaleData({ ...saleData, quantity_sold: '' }); // Reset value if negative

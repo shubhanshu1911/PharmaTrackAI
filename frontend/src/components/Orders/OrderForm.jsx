@@ -16,6 +16,7 @@ const OrderForm = () => {
     const [selectedSupplier, setSelectedSupplier] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [leadTimeError, setLeadTimeError] = useState(null);
 
     const fetchProductSuggestions = async (query) => {
         if (query.length < 2) {
@@ -183,9 +184,20 @@ const OrderForm = () => {
                 type="number"
                 placeholder="Lead time (days)"
                 value={orderData.claimed_lead_time}
-                onChange={e => setOrderData({ ...orderData, claimed_lead_time: e.target.value })}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    if (value < 0) {
+                        setLeadTimeError('Lead time cannot be negative.');
+                        setOrderData({ ...orderData, claimed_lead_time: '' }); // Reset value if negative
+                    } else {
+                        setLeadTimeError(null);
+                        setOrderData({ ...orderData, claimed_lead_time: value });
+                    }
+                }}
                 className="border p-2 w-full mb-4"
             />
+            {leadTimeError && <p className="text-red-500">{leadTimeError}</p>}
+
 
             {selectedSupplier && (
                 <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded mt-4">
