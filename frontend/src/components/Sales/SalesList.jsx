@@ -64,8 +64,8 @@ const SalesList = () => {
     return (
         <div>
             <h2 className="text-xl font-semibold mb-4">Sales List</h2>
-            <ul className="space-y-4">
-                {salesWithProductNames.slice().reverse().map((sale, index) => {
+            <ul className="space-y-4 ">
+                {salesWithProductNames.map((sale, index) => {
                     const saleDate = new Date(sale.sale_date);
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
                     const formattedDate = saleDate.toLocaleDateString(undefined, options);

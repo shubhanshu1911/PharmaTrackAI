@@ -14,10 +14,12 @@ const SalesForm = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [quantityError, setQuantityError] = useState(null); // Error state for quantity validation
-    const [dateError, setDateError] = useState(null); // Error state for date validation
-    const [isSubmitting, setIsSubmitting] = useState(false); // State to manage the submitting status
+    const [quantityError, setQuantityError] = useState(null);
+    const [dateError, setDateError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [lowInventoryWarning, setLowInventoryWarning] = useState(null); // State to manage ROP status
 
+    // Fetch product suggestions for product search input
     const fetchProductSuggestions = async (query) => {
         if (query.length < 2) {
             setSuggestions([]);
@@ -43,19 +45,41 @@ const SalesForm = () => {
         fetchProductSuggestions(value);
     };
 
-    const handleSuggestionClick = (product) => {
+    // Handle selection of a product from suggestions
+    const handleSuggestionClick = async (product) => {
         setProductName(product.product_name);
-        setSaleData({ ...saleData, product_id: product.product_id, total_amount: product.price || '' }); // Assuming product has a price field
+        setSaleData({ ...saleData, product_id: product.product_id, total_amount: product.price || '' });
         setSuggestions([]);
+
+        // Check the ROP status for the selected product
+        try {
+            const ropResponse = await axios.get(`http://localhost:5000/api/v1/sales/ROP/${product.product_id}`);
+            const { flag } = ropResponse.data;
+            console.log(flag);
+
+            if (flag !== 0) {
+                // flag 1
+                setLowInventoryWarning('The inventory of this product is low.');
+            } else {
+                setLowInventoryWarning(null);
+            }
+        } catch (error) {
+            console.error('Error checking ROP status:', error);
+            setLowInventoryWarning('Error checking inventory status.');
+        }
     };
 
-    // Function to check if the date is in the future
+    // Validate future date for the sale
     const isFutureDate = (date) => {
-        const selectedDate = new Date(date);
-        const today = new Date();
-        return selectedDate > today;
+        const selectedDate = new Date(date).setHours(0, 0, 0, 0);
+        const today = new Date().setHours(0, 0, 0, 0);
+        console.log(selectedDate);
+        console.log(today);
+        return selectedDate > today; // Returns true for future dates
     };
 
+
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -77,6 +101,11 @@ const SalesForm = () => {
             return;
         }
 
+        // Final check: Show low inventory warning if applicable
+        if (lowInventoryWarning) {
+            alert(lowInventoryWarning);
+        }
+
         setIsSubmitting(true); // Set loading state to true
         try {
             await addSale(saleData);
@@ -91,10 +120,11 @@ const SalesForm = () => {
                 customer_name: '',
             });
             setProductName('');
-            setQuantityError(null); // Clear error on successful submission
+            setQuantityError(null);
+            setLowInventoryWarning(null);
         } catch (err) {
             console.error(err);
-            alert('Error recording sale. Please try again.'); // Notify user of the error
+            alert('Error recording sale. Please try again.');
         } finally {
             setIsSubmitting(false); // Reset loading state
         }
@@ -138,10 +168,10 @@ const SalesForm = () => {
                 placeholder="Quantity Sold"
                 value={saleData.quantity_sold}
                 onChange={(e) => {
-                    const value = parseInt(e.target.value,10);
+                    const value = parseInt(e.target.value, 10);
                     if (value < 0) {
                         setQuantityError('Quantity cannot be negative.');
-                        setSaleData({ ...saleData, quantity_sold: '' }); // Reset value if negative
+                        setSaleData({ ...saleData, quantity_sold: '' });
                     } else {
                         setQuantityError(null);
                         setSaleData({ ...saleData, quantity_sold: value });
@@ -149,10 +179,8 @@ const SalesForm = () => {
                 }}
                 className="border p-2 w-full mb-4"
             />
-            {quantityError && <p className="text-red-500">{quantityError}</p>} {/* Display error if quantity is negative */}
+            {quantityError && <p className="text-red-500">{quantityError}</p>}
 
-
-            {/* Date Input */}
             <input
                 type="date"
                 placeholder="Sale Date"
@@ -168,12 +196,14 @@ const SalesForm = () => {
                 }}
                 className="border p-2 w-full mb-4"
             />
-            {dateError && <p className="text-red-500">{dateError}</p>} {/* Show error if date is in future */}
+            {dateError && <p className="text-red-500">{dateError}</p>}
+
+            {lowInventoryWarning && <p className="text-red-500">{lowInventoryWarning}</p>} {/* Low inventory warning */}
 
             <button
                 type="submit"
                 className={`bg-blue-600 text-white py-2 px-4 rounded ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={isSubmitting} // Disable button while submitting
+                disabled={isSubmitting}
             >
                 {isSubmitting ? 'Recording...' : 'Record Sale'}
             </button>

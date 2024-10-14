@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { getSales, getPendingOrderCount, getStockAlerts, getYearlyRevenue } from '../api/analyticsApi';
 import MonthlySalesChart from './MonthlySalesChart';
+import axios from 'axios';
 import Chatbot from './Chatbot';  // Import the Chatbot
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const DashboardPage = () => {
     const [totalSales, setTotalSales] = useState(0);
     const [pendingOrders, setPendingOrders] = useState(0);
     const [lowStockAlerts, setLowStockAlerts] = useState(0);
     const [revenue, setRevenue] = useState(0);
+    const [demandData, setDemandData] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -28,33 +31,80 @@ const DashboardPage = () => {
                 console.error('Error fetching data:', error);
             }
         };
+        const fetchDemandData = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/product-demand?week=5');
+                const demandResponse = Object.entries(response.data).map(([productName, { demand }]) => ({
+                    productName,
+                    demand,
+                }));
+                setDemandData(demandResponse);
+            } catch (error) {
+                console.error('Error fetching demand data:', error);
+            }
+        };
 
         fetchData();
+        fetchDemandData();
     }, []);
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-blue-100 hover:bg-blue-200 p-6 rounded-lg shadow-md transition duration-300">
-                    <h2 className="text-xl font-semibold">Total Sales (Yearly)</h2>
-                    <p className="text-2xl mt-2">₹ {totalSales}</p>
+        <div className="container mx-auto p-2 h-screen flex flex-col justify-between">
+            <h1 className="text-2xl font-bold mb-2">Overview</h1>
+
+            {/* Flex container to hold cards and charts */}
+            <div className="flex space-x-2 h-full">
+                {/* Cards section */}
+                <div className="flex flex-col space-y-2 w-1/3">
+                    <div className="bg-blue-100 hover:bg-blue-200 p-2 rounded-lg shadow-md transition duration-300 flex-1">
+                        <h2 className="text-md font-semibold">Total Sales (Yearly)</h2>
+                        <p className="text-xl mt-1">₹ {totalSales}</p>
+                    </div>
+                    <div className="bg-green-200 hover:bg-green-300 p-2 rounded-lg shadow-md transition duration-300 flex-1">
+                        <h2 className="text-md font-semibold">Pending Orders</h2>
+                        <p className="text-xl mt-1">{pendingOrders}</p>
+                    </div>
+                    <div className="bg-yellow-100 hover:bg-yellow-200 p-2 rounded-lg shadow-md transition duration-300 flex-1">
+                        <h2 className="text-md font-semibold">Low Stock Alerts</h2>
+                        <p className="text-xl mt-1">{lowStockAlerts}</p>
+                    </div>
+
+                    {/* Monthly Sales Chart should appear below cards */}
+                    <div className="flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <MonthlySalesChart year={2023} />
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-                <div className="bg-green-200 hover:bg-green-300 p-6 rounded-lg shadow-md transition duration-300">
-                    <h2 className="text-xl font-semibold">Pending Orders</h2>
-                    <p className="text-2xl mt-2">{pendingOrders}</p>
-                </div>
-                <div className="bg-yellow-100 hover:bg-yellow-200 p-6 rounded-lg shadow-md transition duration-300">
-                    <h2 className="text-xl font-semibold">Low Stock Alerts</h2>
-                    <p className="text-2xl mt-2">{lowStockAlerts}</p>
+
+                {/* Right section for the demand chart */}
+                <div className="w-2/3 flex flex-col space-y-2">
+                    <div className="bg-white shadow p-2 rounded-lg flex-1">
+                        <h2 className="text-md font-semibold mb-1">Predicted Demands of Upcoming Week</h2>
+                        <ResponsiveContainer width="100%" height = {300}>
+                            <BarChart data={demandData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="productName" tick={false} />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="demand" fill="#82ca9d" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Placeholder for Low Inventory Table */}
+                    <div className="bg-white shadow p-2 rounded-lg flex-1">
+                        <h2 className="text-md font-semibold mb-1">Low Inventory Table (Coming Soon)</h2>
+                        {/* Low Inventory Table will be added here */}
+                    </div>
                 </div>
             </div>
 
-            {/* Monthly Sales Chart */}
-            <MonthlySalesChart year={2023} />
-
             {/* Chatbot */}
-            <Chatbot />
+            <div className="mt-2 h-24">
+                <Chatbot />
+            </div>
         </div>
     );
 };

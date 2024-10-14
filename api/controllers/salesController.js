@@ -1,4 +1,5 @@
 const pool = require('../db');
+const axios = require ("axios");
 
 // Controller to add a sale
 const addSale = async (req, res) => {
