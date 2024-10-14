@@ -6,6 +6,6 @@ const requestController = require('../controllers/requestController');
 router.post('/add-request', requestController.addRequest);
 
 // Route to get all customer requests
-router.get('/requests', requestController.getAllRequests);
+router.get('/requests', requestController.getWeeklyRequests);
 
 module.exports = router;
