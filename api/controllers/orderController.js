@@ -155,10 +155,31 @@ const getOrderStatusById = async (req, res) => {
 };
 
 
+// Delete order by order_id
+const deleteOrder = async (req, res) => {
+    const { order_id } = req.params; // Extract order_id from the URL parameters
+
+    try {
+        const deleteQuery = 'DELETE FROM orders WHERE order_id = $1 RETURNING *';
+        const result = await pool.query(deleteQuery, [order_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        res.status(200).json({ message: 'Order deleted successfully', order: result.rows[0] });
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
 module.exports = {
     placeOrder,
     updateOrderStatus,
     getSuppliersByProductId,
     getAllOrders,
-    getOrderStatusById
+    getOrderStatusById,
+    deleteOrder
 };
