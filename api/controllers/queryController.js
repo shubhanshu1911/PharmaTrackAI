@@ -112,7 +112,7 @@ const executeLLMQuery = async (req, res) => {
         if (sqlQuery.toLowerCase().startsWith('select')) {
             // Handle SELECT queries: Convert result to natural language
             const dbResultString = JSON.stringify(dbResult.rows);
-            const nlResult = await model.generateContent(`Convert this SQL result into a natural language response: "${dbResultString}"`);
+            const nlResult = await model.generateContent(`Convert this SQL result into a natural language response in english (all this information is in regaurds inventory management): "${dbResultString}"`);
             const nlResponse = await nlResult.response;
             const naturalLanguageResponse = nlResponse.text().trim();
 
