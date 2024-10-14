@@ -14,6 +14,8 @@ const SalesForm = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [quantityError, setQuantityError] = useState(null); // Error state for quantity validation
+    const [dateError, setDateError] = useState(null); // Error state for date validation
     const [isSubmitting, setIsSubmitting] = useState(false); // State to manage the submitting status
 
     const fetchProductSuggestions = async (query) => {
@@ -47,12 +49,31 @@ const SalesForm = () => {
         setSuggestions([]);
     };
 
+    // Function to check if the date is in the future
+    const isFutureDate = (date) => {
+        const selectedDate = new Date(date);
+        const today = new Date();
+        return selectedDate > today;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Basic validation
         if (!saleData.product_id || !saleData.quantity_sold || !saleData.sale_date) {
             alert('Please fill in all required fields.');
+            return;
+        }
+
+        // Check if quantity sold is negative
+        if (saleData.quantity_sold < 0) {
+            setQuantityError('Quantity cannot be negative.');
+            return;
+        }
+
+        // Check if sale date is in the future
+        if (isFutureDate(saleData.sale_date)) {
+            alert('Sale date cannot be in the future.');
             return;
         }
 
@@ -70,6 +91,7 @@ const SalesForm = () => {
                 customer_name: '',
             });
             setProductName('');
+            setQuantityError(null); // Clear error on successful submission
         } catch (err) {
             console.error(err);
             alert('Error recording sale. Please try again.'); // Notify user of the error
@@ -115,18 +137,38 @@ const SalesForm = () => {
                 type="number"
                 placeholder="Quantity Sold"
                 value={saleData.quantity_sold}
-                onChange={(e) => setSaleData({ ...saleData, quantity_sold: e.target.value })}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    if (value < 0) {
+                        setQuantityError('Quantity cannot be negative.');
+                        setSaleData({ ...saleData, quantity_sold: '' }); // Reset value if negative
+                    } else {
+                        setQuantityError(null);
+                        setSaleData({ ...saleData, quantity_sold: value });
+                    }
+                }}
                 className="border p-2 w-full mb-4"
             />
+            {quantityError && <p className="text-red-500">{quantityError}</p>} {/* Display error if quantity is negative */}
+
 
             {/* Date Input */}
             <input
-                type="text"
+                type="date"
                 placeholder="Sale Date"
                 value={saleData.sale_date}
-                onChange={(e) => setSaleData({ ...saleData, sale_date: e.target.value })}
+                onChange={(e) => {
+                    const date = e.target.value;
+                    if (isFutureDate(date)) {
+                        setDateError('Sale date cannot be in the future.');
+                    } else {
+                        setDateError(null);
+                        setSaleData({ ...saleData, sale_date: date });
+                    }
+                }}
                 className="border p-2 w-full mb-4"
             />
+            {dateError && <p className="text-red-500">{dateError}</p>} {/* Show error if date is in future */}
 
             <button
                 type="submit"

@@ -6,8 +6,8 @@ const OrderForm = () => {
     const [orderData, setOrderData] = useState({
         product_id: '',
         quantity: '',
-        order_date: '', 
-        claimed_lead_time: '', 
+        order_date: '',
+        claimed_lead_time: '',
         supplier_id: '',
     });
     const [productName, setProductName] = useState('');
@@ -91,6 +91,29 @@ const OrderForm = () => {
         setOrderData({ ...orderData, supplier_id: supplier.supplier_id });
     };
 
+    // Check for negative quantity input
+    const handleQuantityChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        if (value >= 0) {
+            setOrderData({ ...orderData, quantity: value });
+        } else {
+            alert("Quantity cannot be negative!");
+        }
+    };
+
+    // Check for future dates in the order date
+    const handleOrderDateChange = (e) => {
+        const selectedDate = new Date(e.target.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set time to midnight to compare only the date
+
+        if (selectedDate > today) {
+            alert("Order date cannot be in the future!");
+        } else {
+            setOrderData({ ...orderData, order_date: e.target.value });
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px', overflowY: 'auto' }}>
             <h2 className="text-xl font-semibold mb-4">Place New Order</h2>
@@ -117,7 +140,7 @@ const OrderForm = () => {
                     ))}
                 </ul>
             )}
-            
+
             {suppliers.length > 0 ? (
                 <div className="bg-white border border-gray-300 rounded p-4 mb-4">
                     <h3 className="text-lg font-semibold mb-2">Suppliers:</h3>
@@ -144,22 +167,18 @@ const OrderForm = () => {
                 type="number"
                 placeholder="Quantity"
                 value={orderData.quantity}
-                onChange={e => setOrderData({ ...orderData, quantity: e.target.value })}
+                onChange={handleQuantityChange} // Validate quantity input
                 className="border p-2 w-full mb-4"
             />
 
-            
-
-            {/* Date Input */}
             <input
                 type="date"
                 placeholder="Order Date"
                 value={orderData.order_date}
-                onChange={e => setOrderData({ ...orderData, order_date: e.target.value })}
+                onChange={handleOrderDateChange} // Validate date input
                 className="border p-2 w-full mb-4"
             />
 
-            {/* Lead Time Input */}
             <input
                 type="number"
                 placeholder="Lead time (days)"
@@ -167,8 +186,6 @@ const OrderForm = () => {
                 onChange={e => setOrderData({ ...orderData, claimed_lead_time: e.target.value })}
                 className="border p-2 w-full mb-4"
             />
-
-            
 
             {selectedSupplier && (
                 <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded mt-4">
