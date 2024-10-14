@@ -1,4 +1,5 @@
 const pool = require('../db');
+const axios = require('axios');
 
 // Controller to add a sale
 const addSale = async (req, res) => {
@@ -46,10 +47,30 @@ const addSale = async (req, res) => {
             [quantity_sold, product_id]
         );
 
+        // Fetch the ROP (Reorder Point) data from the FastAPI endpoint
+        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropData = ropResponse.data;
+
+        // Check if ROP data exists for this product
+        if (!ropData[product_id]) {
+            await pool.query('COMMIT');
+            return res.status(201).json({ message: 'Sale recorded successfully, but no ROP data found for this product' });
+        }
+
+        // Get the monthly ROP and convert it to weekly ROP by dividing by 4
+        const monthlyRop = ropData[product_id].rop;
+        const weeklyRop = monthlyRop / 4;
+
+        // Calculate the remaining quantity after the sale
+        const remainingQuantity = availableQuantity - quantity_sold;
+
+        // Check if remaining quantity is less than the weekly ROP
+        const flag = remainingQuantity < weeklyRop ? 1 : 0;
+
         // Commit the transaction
         await pool.query('COMMIT');
 
-        res.status(201).json({ message: 'Sale recorded successfully' });
+        res.status(201).json({ message: 'Sale recorded successfully', flag });
     } catch (err) {
         // Rollback in case of error
         await pool.query('ROLLBACK');
@@ -57,6 +78,7 @@ const addSale = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 
 // Get all sales
