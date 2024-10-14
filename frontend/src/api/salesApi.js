@@ -12,6 +12,10 @@ export const getAllSales = async () => {
     return axios.get(API_URL);
 };
 
+// Delete sale by ID
+export const deleteSale = async (sale_id) => {
+    return axios.delete(`${API_URL}/delete/${sale_id}`);
+};
 
 // API to get product details by product_id
 export const getProductByID = async (product_id) => axios.get(`${PRODUCT_API_URL}/products/${product_id}`);
