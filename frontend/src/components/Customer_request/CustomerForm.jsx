@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const RequestForm = () => {
     const [requestData, setRequestData] = useState({
-        customer_name: '',  // Added customer_name here
+        customer_name: '',
         product_id: '',
         quantity_requested: '',
         request_date: '',
@@ -15,6 +15,8 @@ const RequestForm = () => {
     const [selectedSupplier, setSelectedSupplier] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [quantityError, setQuantityError] = useState(null); // Error state for quantity validation
+    const [dateError, setDateError] = useState(null); // Error state for date validation
 
     // Fetch product suggestions based on user input
     const fetchProductSuggestions = async (query) => {
@@ -62,6 +64,13 @@ const RequestForm = () => {
         }
     }, [requestData.product_id]);
 
+    // Check if the date is in the future
+    const isFutureDate = (date) => {
+        const selectedDate = new Date(date);
+        const today = new Date();
+        return selectedDate > today;
+    };
+
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -70,10 +79,15 @@ const RequestForm = () => {
             return;
         }
 
+        if (quantityError || dateError) {
+            alert('Please fix the errors before submitting.');
+            return;
+        }
+
         try {
             // Submit form data with all required fields
             await axios.post('http://localhost:5000/api/v1/request/add-request', {
-                ...requestData, // includes customer_name, supplier_id, product_id, quantity_requested, request_date
+                ...requestData,
             });
 
             alert('Request submitted successfully!');
@@ -105,7 +119,7 @@ const RequestForm = () => {
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px', overflowY: 'auto' }}>
             <h2 className="text-xl font-semibold mb-4">Submit Customer Request</h2>
-            
+
             <input
                 type="text"
                 placeholder="Customer Name (Optional)"
@@ -160,17 +174,36 @@ const RequestForm = () => {
                 type="number"
                 placeholder="Quantity Requested"
                 value={requestData.quantity_requested}
-                onChange={e => setRequestData({ ...requestData, quantity_requested: e.target.value })}
+                onChange={e => {
+                    const value = parseInt(e.target.value, 10);
+                    if (value < 0 || isNaN(value)) {
+                        setQuantityError('Quantity must be a positive integer.');
+                        setRequestData({ ...requestData, quantity_requested: '' });
+                    } else {
+                        setQuantityError(null);
+                        setRequestData({ ...requestData, quantity_requested: value });
+                    }
+                }}
                 className="border p-2 w-full mb-4"
             />
+            {quantityError && <p className="text-red-500">{quantityError}</p>}
 
             <input
                 type="date"
                 placeholder="Request Date"
                 value={requestData.request_date}
-                onChange={e => setRequestData({ ...requestData, request_date: e.target.value })}
+                onChange={e => {
+                    const date = e.target.value;
+                    if (isFutureDate(date)) {
+                        setDateError('Request date cannot be in the future.');
+                    } else {
+                        setDateError(null);
+                        setRequestData({ ...requestData, request_date: date });
+                    }
+                }}
                 className="border p-2 w-full mb-4"
             />
+            {dateError && <p className="text-red-500">{dateError}</p>}
 
             {selectedSupplier && (
                 <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded mt-4">

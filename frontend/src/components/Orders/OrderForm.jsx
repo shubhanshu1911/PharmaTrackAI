@@ -185,7 +185,7 @@ const OrderForm = () => {
                 placeholder="Lead time (days)"
                 value={orderData.claimed_lead_time}
                 onChange={(e) => {
-                    const value = e.target.value;
+                    const value = parseInt(e.target.value,10);
                     if (value < 0) {
                         setLeadTimeError('Lead time cannot be negative.');
                         setOrderData({ ...orderData, claimed_lead_time: '' }); // Reset value if negative
