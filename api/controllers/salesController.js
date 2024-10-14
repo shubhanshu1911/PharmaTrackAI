@@ -1,5 +1,4 @@
 const pool = require('../db');
-const axios = require('axios');
 
 // Controller to add a sale
 const addSale = async (req, res) => {
@@ -47,30 +46,10 @@ const addSale = async (req, res) => {
             [quantity_sold, product_id]
         );
 
-        // Fetch the ROP (Reorder Point) data from the FastAPI endpoint
-        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
-        const ropData = ropResponse.data;
-
-        // Check if ROP data exists for this product
-        if (!ropData[product_id]) {
-            await pool.query('COMMIT');
-            return res.status(201).json({ message: 'Sale recorded successfully, but no ROP data found for this product' });
-        }
-
-        // Get the monthly ROP and convert it to weekly ROP by dividing by 4
-        const monthlyRop = ropData[product_id].rop;
-        const weeklyRop = monthlyRop / 4;
-
-        // Calculate the remaining quantity after the sale
-        const remainingQuantity = availableQuantity - quantity_sold;
-
-        // Check if remaining quantity is less than the weekly ROP
-        const flag = remainingQuantity < weeklyRop ? 1 : 0;
-
         // Commit the transaction
         await pool.query('COMMIT');
 
-        res.status(201).json({ message: 'Sale recorded successfully', flag });
+        res.status(201).json({ message: 'Sale recorded successfully' });
     } catch (err) {
         // Rollback in case of error
         await pool.query('ROLLBACK');
@@ -78,7 +57,6 @@ const addSale = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 
 
 // Get all sales
@@ -129,4 +107,46 @@ const deleteSale = async (req, res) => {
 };
 
 
-module.exports = { addSale, getAllSales, getSaleById, deleteSale};
+// Controller to check ROP status for a product
+const checkROPStatus = async (req, res) => {
+    const { product_id } = req.params;
+
+    try {
+        // Fetch the product's current inventory quantity
+        const productInventory = await pool.query(
+            'SELECT quantity FROM inventory WHERE product_id = $1',
+            [product_id]
+        );
+
+        if (productInventory.rows.length === 0) {
+            return res.status(404).json({ error: 'Product not found in inventory' });
+        }
+
+        const availableQuantity = productInventory.rows[0].quantity;
+
+        // Fetch the ROP data from the FastAPI endpoint
+        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropData = ropResponse.data;
+
+        // Check if ROP data exists for this product
+        if (!ropData[product_id]) {
+            return res.status(404).json({ error: 'ROP data not found for this product' });
+        }
+
+        // Get the monthly ROP and convert it to weekly ROP
+        const monthlyRop = ropData[product_id].rop;
+        const weeklyRop = monthlyRop / 4;
+
+        // Compare the available quantity with the weekly ROP
+        const flag = availableQuantity < weeklyRop ? 1 : 0;
+
+        res.status(200).json({ flag });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus};

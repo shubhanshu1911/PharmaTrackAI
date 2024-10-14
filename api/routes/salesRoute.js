@@ -10,4 +10,6 @@ router.get('/:sale_id', salesController.getSaleById);
 
 router.delete('/delete/:sale_id',salesController.deleteSale);
 
+router.get('/ROP/:product_id', salesController.checkROPStatus);
+
 module.exports = router;
