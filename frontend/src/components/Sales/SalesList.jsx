@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { getAllSales } from '../../api/salesApi';
-import { getProductByID } from '../../api/productApi'; // Import the function to get product details
+import { getAllSales, deleteSale } from '../../api/salesApi'; // Import the deleteSale function
+import { getProductByID } from '../../api/productApi';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const SalesList = () => {
-    const [salesWithProductNames, setSalesWithProductNames] = useState([]);  // Cached sales data
+    const [salesWithProductNames, setSalesWithProductNames] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [hasFetched, setHasFetched] = useState(false);  // Track if data has been fetched
-    const [data, setData] = useState([]);
+    const [hasFetched, setHasFetched] = useState(false);
 
     // Fetch sales and map product names only once
     useEffect(() => {
@@ -20,7 +20,6 @@ const SalesList = () => {
                     const salesWithNames = await Promise.all(
                         salesData.map(async (sale) => {
                             try {
-                                // Fetch the product by its ID
                                 const productResponse = await getProductByID(sale.product_id);
                                 const product = productResponse.data;
                                 return { ...sale, product_name: product.product_name };
@@ -32,9 +31,8 @@ const SalesList = () => {
                     );
 
                     setSalesWithProductNames(salesWithNames);
-                    setData(salesWithNames);
                     setLoading(false);
-                    setHasFetched(true);  // Mark as fetched to avoid re-fetching
+                    setHasFetched(true);
                 } catch (error) {
                     console.error('Error fetching sales:', error);
                 }
@@ -42,9 +40,21 @@ const SalesList = () => {
 
             fetchSales();
         }
-    }, [hasFetched]);  // Only fetch if not already fetched
+    }, [hasFetched]);
 
-    console.log([hasFetched]);
+    // Function to delete a sale
+    const handleDeleteSale = async (sale_id) => {
+        if (window.confirm('Are you sure you want to delete this sale?')) {
+            try {
+                await deleteSale(sale_id); // Call the delete function
+                setSalesWithProductNames((prevSales) =>
+                    prevSales.filter((sale) => sale.sale_id !== sale_id) // Remove deleted sale from state
+                );
+            } catch (error) {
+                console.error('Error deleting sale:', error);
+            }
+        }
+    };
 
     if (loading) return <div>Loading sales...</div>;
 
@@ -56,22 +66,31 @@ const SalesList = () => {
             <h2 className="text-xl font-semibold mb-4">Sales List</h2>
             <ul className="space-y-4">
                 {salesWithProductNames.slice().reverse().map((sale, index) => {
-                    const saleDate = new Date(sale.sale_date); // Convert to Date object
-                    const options = { year: 'numeric', month: 'long', day: 'numeric' }; // Define formatting options
-                    const formattedDate = saleDate.toLocaleDateString(undefined, options); // Format date
-
-                    const isLatest = latestIndex === salesWithProductNames.length - 1 - index; // Check if this is the latest sale
+                    const saleDate = new Date(sale.sale_date);
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const formattedDate = saleDate.toLocaleDateString(undefined, options);
+                    const isLatest = latestIndex === salesWithProductNames.length - 1 - index;
 
                     return (
                         <li
-                            key={sale.id}
-                            className={`bg-white p-4 rounded shadow-md ${isLatest ? 'border-2 border-blue-500' : ''}`} // Highlight latest sale
+                            key={sale.sale_id}
+                            className={`relative bg-white p-4 rounded shadow-md ${isLatest ? 'border-2 border-blue-500' : ''}`} // Make the container relative
                         >
-                            <div>Product Name: {sale.product_name}</div> {/* Show product name */}
-                            <div>Quantity Sold: {sale.quantity_sold}</div>
-                            <div>Customer: {sale.customer_name}</div>
-                            <div>Sold on: {formattedDate}</div> {/* Display formatted date */}
-                            <div>Total Amount: {sale.total_amount}</div>
+                            <div>
+                                <div>Product Name: {sale.product_name}</div>
+                                <div>Quantity Sold: {sale.quantity_sold}</div>
+                                <div>Customer: {sale.customer_name}</div>
+                                <div>Sold on: {formattedDate}</div>
+                                <div>Total Amount: {sale.total_amount}</div>
+                            </div>
+
+                            {/* Add delete button in the top-right corner */}
+                            <button
+                                onClick={() => handleDeleteSale(sale.sale_id)} // Call delete handler
+                                className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                            >
+                                <DeleteIcon />
+                            </button>
                         </li>
                     );
                 })}

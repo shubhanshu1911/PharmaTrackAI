@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProductByID } from '../../api/productApi';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const OrderItem = ({ order, onUpdateStatus, isLatest, onDeleteOrder }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -49,7 +50,15 @@ const OrderItem = ({ order, onUpdateStatus, isLatest, onDeleteOrder }) => {
     };
 
     return (
-        <li className={`bg-white p-4 rounded shadow-md ${isLatest ? 'border-2 border-blue-500' : ''}`}>
+        <li className={`bg-white p-4 rounded shadow-md relative ${isLatest ? 'border-2 border-blue-500' : ''}`}>
+            <button
+                onClick={handleDelete}
+                className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                aria-label="Delete order"
+            >
+                <DeleteIcon/>
+            </button>
+
             <div>Product Name: {productName}</div>
             <div>Order Date: {formatDate(order.order_date)}</div>
             <div>Total Cost: {order.total_cost}</div>
@@ -93,8 +102,6 @@ const OrderItem = ({ order, onUpdateStatus, isLatest, onDeleteOrder }) => {
             )}
 
             {!isEditable && <p className="text-gray-600 mt-4">Order already updated</p>}
-
-            <button onClick={handleDelete} className="bg-red-600 text-white py-2 px-4 rounded mt-4">Delete Order</button>
         </li>
     );
 };
