@@ -87,4 +87,24 @@ const getSaleById = async (req, res) => {
     }
 };
 
-module.exports = { addSale, getAllSales, getSaleById};
+
+const deleteSale = async (req, res) => {
+    const { sale_id } = req.params; // Extract sale_id from the URL parameters
+
+    try {
+        const deleteQuery = 'DELETE FROM sales WHERE sale_id = $1 RETURNING *';
+        const result = await pool.query(deleteQuery, [sale_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Sale not found' });
+        }
+
+        res.status(200).json({ message: 'Sale deleted successfully', sale: result.rows[0] });
+    } catch (error) {
+        console.error('Error deleting sale:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+module.exports = { addSale, getAllSales, getSaleById, deleteSale};
