@@ -176,7 +176,7 @@ const getProductsBelowROP = async (req, res) => {
             // Skip if either ROP or demand data is missing for this product
             if (!productROP || !weeklyDemand) return null;
 
-            // Calculate weekly ROP
+            // Calculate weekly ROPa
             const weeklyROP = productROP / 4;
 
             // Determine the higher value between weekly ROP and weekly demand

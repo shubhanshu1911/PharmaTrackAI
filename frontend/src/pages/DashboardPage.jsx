@@ -106,7 +106,7 @@ const DashboardPage = () => {
 
                     {/* Placeholder for Low Inventory Table */}
                     <div className="bg-white shadow p-2 rounded-lg flex-1">
-                        <h2 className="text-md font-semibold mb-1">Low Inventory Table (Coming Soon)</h2>
+                        <h1 className="text-md font-semibold mb-1">Low Inventory Table</h1>
                         {/* Low Inventory Table will be added here */}
                         <LowInventory />
                     </div>

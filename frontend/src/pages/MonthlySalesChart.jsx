@@ -27,7 +27,7 @@ const MonthlySalesChart = ({ year }) => {
         const fetchDemandData = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/product-demand?week=5');
-                console.log('API Response:', response.data); // Log the response for debugging
+                // console.log('API Response:', response.data); // Log the response for debugging
                 const demandResponse = Object.entries(response.data).map(([productName, { demand }]) => ({
                     productName,
                     demand,

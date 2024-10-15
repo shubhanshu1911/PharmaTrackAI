@@ -15,6 +15,8 @@ router.get('/sales-by-year/:year', analyticsController.getSalesByYear);
 
 router.get('/pending-orders-count', analyticsController.getPendingOrderCount);
 
+router.get('/getName', analyticsController.getName);
+
 module.exports = router;
 
 

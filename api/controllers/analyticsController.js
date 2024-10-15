@@ -1,4 +1,5 @@
 const pool = require('../db');
+const axios = require('axios');
 
 // Get total sales month-wise for a specific product
 const getSalesByProduct = async (req, res) => {
@@ -117,5 +118,43 @@ const getPendingOrderCount = async (req, res) => {
     }
 };
 
+const getName = async(req,res) => {
+    console.log("yusuf");
+    // res.send("Hello");
 
-module.exports = { getSalesByProduct, getStockAlerts, getRevenue, getSalesByYear,getPendingOrderCount };
+    try {
+        console.log('getProductsBelowROP function called');
+
+        // Step 1: Fetch all product_id and quantity from inventory table
+        const inventoryQuery = 'SELECT product_id, quantity FROM inventory';
+        const { rows: inventoryData } = await pool.query(inventoryQuery);
+
+        console.log('Inventory Data:', JSON.stringify(inventoryData, null, 2));
+
+        // Step 2: Fetch ROP data from FastAPI
+        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropData = ropResponse.data;
+
+        console.log('ROP Data:', JSON.stringify(ropData, null, 2));
+
+        // Step 3: Compare and filter products below ROP
+        const productsBelowROP = inventoryData.filter(product => {
+            const productROP = ropData[product.product_id]?.rop;
+            if (productROP === undefined || productROP === null) return false;
+            const weeklyROP = productROP / 4;
+            return product.quantity < weeklyROP;
+        });
+
+        console.log('Products Below ROP:', JSON.stringify(productsBelowROP, null, 2));
+
+        // Step 4: Send the filtered products as response
+        res.status(200).json(productsBelowROP);
+    } catch (err) {
+        console.error('Error in getProductsBelowROP:', err);
+        res.status(500).json({ error: 'Server error', details: err.message });
+    }
+
+};
+
+
+module.exports = { getSalesByProduct, getStockAlerts, getRevenue, getSalesByYear, getPendingOrderCount, getName };
