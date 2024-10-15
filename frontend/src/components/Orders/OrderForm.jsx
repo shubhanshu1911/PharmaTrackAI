@@ -16,6 +16,7 @@ const OrderForm = () => {
     const [selectedSupplier, setSelectedSupplier] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [leadTimeError, setLeadTimeError] = useState(null);
 
     const fetchProductSuggestions = async (query) => {
@@ -25,7 +26,6 @@ const OrderForm = () => {
         }
         setLoading(true);
         setError(null);
-
         try {
             const response = await axios.get(`http://localhost:5000/api/v1/products/products?query=${query}`);
             console.log(response);
@@ -46,7 +46,6 @@ const OrderForm = () => {
 
     const fetchSuppliers = async () => {
         if (!orderData.product_id) return;
-
         try {
             const response = await axios.get(`http://localhost:5000/api/v1/orders/suppliers/${orderData.product_id}`);
             setSuppliers(response.data);
@@ -64,6 +63,7 @@ const OrderForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         if (!selectedSupplier) {
             alert("Please select a supplier before placing the order.");
             return;
@@ -78,6 +78,8 @@ const OrderForm = () => {
             setSuggestions([]);
         } catch (err) {
             console.error(err);
+        } finally {
+            setIsSubmitting(false); // Reset isSubmitting
         }
     };
 
@@ -104,10 +106,9 @@ const OrderForm = () => {
 
     // Check for future dates in the order date
     const handleOrderDateChange = (e) => {
-        const selectedDate = new Date(e.target.value);
+        const selectedDate = new Date(e.target.value).setHours(0, 0, 0, 0);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set time to midnight to compare only the date
-
         if (selectedDate > today) {
             alert("Order date cannot be in the future!");
         } else {
@@ -116,9 +117,8 @@ const OrderForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md" style={{ height: '600px'}}>
             <h2 className="text-xl font-semibold mb-4">Place New Order</h2>
-
             <input
                 type="text"
                 placeholder="Product Name"
@@ -141,7 +141,6 @@ const OrderForm = () => {
                     ))}
                 </ul>
             )}
-
             {suppliers.length > 0 ? (
                 <div className="bg-white border border-gray-300 rounded p-4 mb-4">
                     <h3 className="text-lg font-semibold mb-2">Suppliers:</h3>
@@ -152,10 +151,7 @@ const OrderForm = () => {
                                 onClick={() => handleSupplierClick(supplier)}
                                 className={`mb-2 cursor-pointer hover:bg-gray-200 ${selectedSupplier?.supplier_id === supplier.supplier_id ? 'bg-blue-100' : ''}`}
                             >
-                                Supplier Name: {supplier.supplier_name},
-                                cost per strip: {supplier.cost_price},
-                                Reliability score : {supplier.supplier_score}
-
+                                Supplier Name: {supplier.supplier_name}, cost per strip: {supplier.cost_price}, Reliability score: {supplier.supplier_score}
                             </li>
                         ))}
                     </ul>
@@ -163,7 +159,6 @@ const OrderForm = () => {
             ) : (
                 <p>No suppliers available for the selected product.</p>
             )}
-
             <input
                 type="number"
                 placeholder="Quantity"
@@ -171,7 +166,6 @@ const OrderForm = () => {
                 onChange={handleQuantityChange} // Validate quantity input
                 className="border p-2 w-full mb-4"
             />
-
             <input
                 type="date"
                 placeholder="Order Date"
@@ -179,13 +173,12 @@ const OrderForm = () => {
                 onChange={handleOrderDateChange} // Validate date input
                 className="border p-2 w-full mb-4"
             />
-
             <input
                 type="number"
                 placeholder="Lead time (days)"
                 value={orderData.claimed_lead_time}
                 onChange={(e) => {
-                    const value = parseInt(e.target.value,10);
+                    const value = parseInt(e.target.value, 10);
                     if (value < 0) {
                         setLeadTimeError('Lead time cannot be negative.');
                         setOrderData({ ...orderData, claimed_lead_time: '' }); // Reset value if negative
@@ -197,11 +190,13 @@ const OrderForm = () => {
                 className="border p-2 w-full mb-4"
             />
             {leadTimeError && <p className="text-red-500">{leadTimeError}</p>}
-
-
             {selectedSupplier && (
-                <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded mt-4">
-                    Place Order
+                <button
+                    type="submit"
+                    className={`bg-blue-600 text-white py-2 px-4 rounded ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'Recording...' : 'Place Order'}
                 </button>
             )}
         </form>

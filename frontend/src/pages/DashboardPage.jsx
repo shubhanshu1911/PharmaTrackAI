@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getSales, getPendingOrderCount, getStockAlerts, getYearlyRevenue } from '../api/analyticsApi';
 import MonthlySalesChart from './MonthlySalesChart';
+import LowInventory from './LowInventory';
 import axios from 'axios';
 import Chatbot from './Chatbot';  // Import the Chatbot
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -56,18 +58,27 @@ const DashboardPage = () => {
             <div className="flex space-x-2 h-full">
                 {/* Cards section */}
                 <div className="flex flex-col space-y-2 w-1/3">
-                    <div className="bg-blue-100 hover:bg-blue-200 p-2 rounded-lg shadow-md transition duration-300 flex-1">
+                    <div className="bg-blue-200 hover:bg-blue-300 p-2 rounded-lg shadow-md transition duration-300 flex-1">
                         <h2 className="text-md font-semibold">Total Sales (Yearly)</h2>
                         <p className="text-xl mt-1">₹ {totalSales}</p>
                     </div>
-                    <div className="bg-green-200 hover:bg-green-300 p-2 rounded-lg shadow-md transition duration-300 flex-1">
-                        <h2 className="text-md font-semibold">Pending Orders</h2>
-                        <p className="text-xl mt-1">{pendingOrders}</p>
+                    <div className="flex space-x-4">
+                        <Link 
+                            className="text-left bg-green-300 hover:bg-green-400 p-2 rounded-lg shadow-md transition duration-300 flex-1"
+                            to="./Orders"    
+                        >
+                            <h2 className="text-md font-semibold">Pending Orders</h2>
+                            <p className="text-xl mt-1">{pendingOrders}</p>
+                        </Link>
+                        <Link 
+                            className="bg-yellow-200 hover:bg-yellow-300 p-2 rounded-lg shadow-md transition duration-300 flex-1"
+                            to = "./inventory"
+                        >
+                            <h2 className="text-md font-semibold">Low Stock Alerts</h2>
+                            <p className="text-xl mt-1">{lowStockAlerts}</p>
+                        </Link>
                     </div>
-                    <div className="bg-yellow-100 hover:bg-yellow-200 p-2 rounded-lg shadow-md transition duration-300 flex-1">
-                        <h2 className="text-md font-semibold">Low Stock Alerts</h2>
-                        <p className="text-xl mt-1">{lowStockAlerts}</p>
-                    </div>
+
 
                     {/* Monthly Sales Chart should appear below cards */}
                     <div className="flex-1">
@@ -97,6 +108,7 @@ const DashboardPage = () => {
                     <div className="bg-white shadow p-2 rounded-lg flex-1">
                         <h2 className="text-md font-semibold mb-1">Low Inventory Table (Coming Soon)</h2>
                         {/* Low Inventory Table will be added here */}
+                        <LowInventory />
                     </div>
                 </div>
             </div>

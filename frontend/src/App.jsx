@@ -17,7 +17,7 @@ const App = () => {
     <Router>
       <div className="flex min-h-screen">
         {/* Vertical navigation bar */}
-        <nav className="bg-black text-white w-50 p-3 h-screen">
+        <nav className="bg-black text-white w-50 p-3">
           <div className="mb-5 mt-3 text-xl">
             <h1 > <HealingIcon /> PharmaTrackAI</h1>
           </div>

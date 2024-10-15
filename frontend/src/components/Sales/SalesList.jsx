@@ -62,7 +62,7 @@ const SalesList = () => {
     const latestIndex = salesWithProductNames.length - 1;
 
     return (
-        <div>
+        <div style={{ height: '600px', overflowY: 'auto' }}>
             <h2 className="text-xl font-semibold mb-4">Sales List</h2>
             <ul className="space-y-4 ">
                 {salesWithProductNames.map((sale, index) => {
