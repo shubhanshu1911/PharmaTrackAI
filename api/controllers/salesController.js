@@ -1,5 +1,5 @@
 const pool = require('../db');
-const axios = require ("axios");
+const axios = require("axios");
 
 // Controller to add a sale
 const addSale = async (req, res) => {
@@ -126,7 +126,7 @@ const checkROPStatus = async (req, res) => {
         const availableQuantity = productInventory.rows[0].quantity;
 
         // Fetch the ROP data from the FastAPI endpoint
-        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropResponse = await axios.get('http://3.111.31.228:8000/roq');
         const ropData = ropResponse.data;
 
         // Check if ROP data exists for this product
@@ -160,12 +160,12 @@ const getProductsBelowROP = async (req, res) => {
         `);
 
         // Fetch the ROP data from the FastAPI API
-        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropResponse = await axios.get('http://3.111.31.228:8000/roq');
         const ropData = ropResponse.data;
 
         // Fetch the weekly demand from the FastAPI API (using week 5 as query parameter)
         const week = 5; // Can be dynamic depending on the current week or system requirements
-        const demandResponse = await axios.get(`http://127.0.0.1:8000/product-demand?week=${week}`);
+        const demandResponse = await axios.get(`http://3.111.31.228:8000/product-demand?week=${week}`);
         const demandData = demandResponse.data;
 
         // Filter products whose quantity is less than the required stock level (ROP/4 or weekly demand)
@@ -206,4 +206,4 @@ const getProductsBelowROP = async (req, res) => {
     }
 };
 
-module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus, getProductsBelowROP};
+module.exports = { addSale, getAllSales, getSaleById, deleteSale, checkROPStatus, getProductsBelowROP };

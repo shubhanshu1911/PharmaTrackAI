@@ -132,7 +132,7 @@ const getName = async(req,res) => {
         console.log('Inventory Data:', JSON.stringify(inventoryData, null, 2));
 
         // Step 2: Fetch ROP data from FastAPI
-        const ropResponse = await axios.get('http://127.0.0.1:8000/roq');
+        const ropResponse = await axios.get('http://3.111.31.228:8000/roq');
         const ropData = ropResponse.data;
 
         console.log('ROP Data:', JSON.stringify(ropData, null, 2));
